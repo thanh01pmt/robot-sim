@@ -1,12 +1,6 @@
 [build]
   publish = "public"
-  command = """
-    npm install -g sass && \
-    cd scss && \
-    sass --sourcemap=none .:../public/css && \
-    cd .. && \
-    python3 updateVersion.py
-  """
+  command = "npm install -g sass && sass scss/main.scss:public/css/main.css scss/widgets.scss:public/css/widgets.css --no-source-map && python3 updateVersion.py"
 
 [build.environment]
   PYTHON_VERSION = "3.11"
