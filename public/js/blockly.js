@@ -55,16 +55,25 @@ var blockly = new function() {
 
   // Load toolbox
   this.loadToolBox = function() {
-    return fetch('toolbox.xml?v=f7456359')
+    return fetch('toolbox.xml?v=b53ac963')
       .then(response => response.text())
       .then(function(response) {
         response = i18n.replace(response);
         self.toolboxXml = (new DOMParser()).parseFromString(response, "text/xml");
         options.toolbox = self.toolboxXml.getElementById('toolbox');
-        self.workspace = Blockly.inject('blocklyHiddenDiv', options);
         self.displayedWorkspace = Blockly.inject('blocklyDiv', options);
-        self.minimap = new Minimap(self.displayedWorkspace);
-        self.minimap.init();
+
+        // Strip search from toolbox as it cannot be loaded twice
+        for (let i=0; i<options.toolbox.childNodes.length; i++) {
+          if (options.toolbox.childNodes[i].tagName == 'search') {
+            options.toolbox.removeChild(options.toolbox.childNodes[i]);
+            break;
+          }
+        }
+
+        self.workspace = Blockly.inject('blocklyHiddenDiv', options);
+        // self.minimap = new Minimap(self.displayedWorkspace);
+        // self.minimap.init();
         self.displayedWorkspace.addChangeListener(self.mirrorEvent);
         self.registerCustomToolboxes();
 
@@ -105,20 +114,29 @@ var blockly = new function() {
 
     let filteredXml = self.toolboxXml.cloneNode(true);
 
+    let removedCategories = [];
+    let showCategories = [];
+    let removedBlocks = [];
+
     if (typeof filter.deny != 'undefined') {
       if (typeof filter.deny.categories != 'undefined') {
         for (let deny of filter.deny.categories) {
-          let toRemove = filteredXml.querySelector('[name="' + deny + '"]');
-          if (toRemove) {
-            toRemove.remove();
+          let toHide = filteredXml.querySelector('[id="' + deny + '"]');
+          if (toHide) {
+            removedCategories.push(toHide);
+            for (let i=0; i<toHide.children.length; i++) {
+              if (toHide.children[i].tagName == 'block') {
+                removedBlocks.push(toHide.children[i]);
+              }
+            }
           }
         }
       }
       if (typeof filter.deny.blocks != 'undefined') {
         for (let deny of filter.deny.blocks) {
-          let toRemove = filteredXml.querySelector('[type="' + deny + '"]').remove();
-          if (toRemove) {
-            toRemove.remove();
+          let toHide = filteredXml.querySelector('[type="' + deny + '"]');
+          if (toHide) {
+            removedBlocks.push(toHide);
           }
         }
       }
@@ -127,9 +145,43 @@ var blockly = new function() {
     if (typeof filter.show != 'undefined') {
       if (typeof filter.show.categories != 'undefined') {
         for (let show of filter.show.categories) {
-          filteredXml.querySelector('[name="' + show + '"]').setAttribute('hidden', false);
+          let toShow = filteredXml.querySelector('[id="' + show + '"]');
+          if (toShow) {
+            removedCategories = removedCategories.filter(function(item) {
+              return item != toShow;
+            });
+            showCategories.push(toShow);
+          }
         }
       }
+      if (typeof filter.show.blocks != 'undefined') {
+        for (let show of filter.show.blocks) {
+          let toShow = filteredXml.querySelectorAll('[type="' + show + '"]');
+          if (toShow.length > 0) {
+            for (let i=0; i<toShow.length; i++) {
+              if (toShow[i].tagName == 'block') {
+                let parent = toShow[i].parentNode;
+                removedCategories = removedCategories.filter(function(item) {
+                  return item != parent;
+                });
+                removedBlocks = removedBlocks.filter(function(item) {
+                  return item != toShow[i];
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (let category of removedCategories) {
+      category.setAttribute('hidden', true);
+    }
+    for (let category of showCategories) {
+      category.setAttribute('hidden', false);
+    }
+    for (let block of removedBlocks) {
+      block.remove();
     }
 
     self.displayedWorkspace.updateToolbox(filteredXml.getElementById('toolbox'));
@@ -225,7 +277,11 @@ var blockly = new function() {
     var json = primaryEvent.toJson();
     json.varType = '';
     var secondaryEvent = Blockly.Events.fromJson(json, self.workspace);
-    secondaryEvent.run(true);
+    try {
+      secondaryEvent.run(true);
+    } catch (err) {
+      console.log(err);
+    }
 
     if (primaryEvent.type == Blockly.Events.BLOCK_CREATE) {
       self.assignOrphenToPage(blocklyPanel.currentPage);
@@ -281,28 +337,55 @@ var blockly = new function() {
   this.loadXmlText = function(xmlText) {
     let oldXmlText = self.getXmlText();
     if (xmlText) {
+      let dom;
       try {
-        let dom = Blockly.utils.xml.textToDom(xmlText);
-        self.workspace.clear();
-        Blockly.Xml.domToWorkspace(dom, self.workspace);
-        self.assignOrphenToPage('Main');
-        self.showPage('Main');
-
-        let pages = [];
-        self.workspace.getAllBlocks().forEach(function(block){
-          if (pages.indexOf(block.data) == -1) {
-            pages.push(block.data);
-          }
-        });
-        blocklyPanel.loadPagesOptions(pages);
-      }
-      catch (err) {
+        dom = Blockly.utils.xml.textToDom(xmlText);
+      } catch (err) {
         console.log(err);
-        if (err.name == 'Error') {
-          toastMsg('Invalid Blocks');
-          self.loadXmlText(oldXmlText);
+        toastMsg('File does not appear to be a valid XML');
+        return;
+      }
+
+      // Attempt to cleanup Dom
+      let whenStartedLoaded = false;
+      for (let i=0; i<dom.childNodes.length; i++) {
+        if (dom.childNodes[i].tagName == 'shadow') {
+          dom.removeChild(dom.childNodes[i]);
+          i--;
+        }
+        try {
+          if (dom.childNodes[i].getAttribute('type') == 'when_started') {
+            if (whenStartedLoaded) {
+              dom.removeChild(dom.childNodes[i]);
+              i--;
+            }
+            whenStartedLoaded = true;
+          }
+        } catch (err) {
+          // Ignore
         }
       }
+
+      self.workspace.clear();
+
+      try {
+        Blockly.Xml.domToWorkspace(dom, self.workspace);
+      } catch (err) {
+        console.log(err);
+        toastMsg('Error loading blocks');
+        self.loadXmlText(oldXmlText);
+      }
+
+      self.assignOrphenToPage('Main');
+      self.showPage('Main');
+
+      let pages = [];
+      self.workspace.getAllBlocks().forEach(function(block){
+        if (pages.indexOf(block.data) == -1) {
+          pages.push(block.data);
+        }
+      });
+      blocklyPanel.loadPagesOptions(pages);
     }
   };
 

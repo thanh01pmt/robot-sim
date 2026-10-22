@@ -59,7 +59,9 @@ var simPanel = new function() {
     self.$cameraOptions.click(self.switchCamera);
     self.$sensors.click(self.toggleSensorsPanel);
     self.$closePlotter.click(self.closePlotter);
-    self.$plotterCanvas[0].addEventListener('mousemove', self.plotterDisplayPosition);
+    if (self.$plotterCanvas[0]) {
+      self.$plotterCanvas[0].addEventListener('mousemove', self.plotterDisplayPosition);
+    }
 
     if (self.$hubButtons.length > 0) {
       self.$hubButtonsIcon.click(self.toggleHubButtons);
@@ -661,7 +663,12 @@ var simPanel = new function() {
           motor.port + ': ' + i18n.get('#sim-wheel#'),
           [i18n.get('#sim-position#')]
           );
-        }
+      } else if (motor.type == 'WheelOmniActuator') {
+        tmp = genDiv(
+          motor.port + ': ' + i18n.get('#sim-wheel#'),
+          [i18n.get('#sim-position#')]
+          );
+      }
 
       if (tmp) {
         self.$sensorsPanel.append(tmp[0]);
@@ -698,6 +705,8 @@ var simPanel = new function() {
         sensor[1][1].text(Math.round(position[2] * 10) / 10);
         sensor[1][2].text(Math.round(position[1] * 10) / 10);
       } else if (sensor[0].type == 'WheelActuator') {
+        sensor[1][0].text(Math.round(sensor[0].position));
+      } else if (sensor[0].type == 'WheelOmniActuator') {
         sensor[1][0].text(Math.round(sensor[0].position));
       } else if (sensor[0].type == 'ArmActuator') {
         sensor[1][0].text(Math.round(sensor[0].position));

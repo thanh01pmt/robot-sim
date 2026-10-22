@@ -115,34 +115,33 @@ var main = new function() {
   this.loadRobot = function(json) {
     try {
       data = JSON.parse(json);
-
-      // Is it a world file?
-      if (typeof data.worldName != 'undefined') {
-        showErrorModal(i18n.get('#main-invalid_robot_file_world#'));
-        return;
-      }
-
-      // Is it a robot file?
-      if (typeof data.bodyHeight == 'undefined') {
-        showErrorModal(i18n.get('#main-invalid_robot_file_robot#'));
-        return;
-      }
-
-      robot.options = data;
-      let i = robotTemplates.findIndex(r => r.name == robot.options.name);
-      if (i == -1) {
-        robotTemplates.push({...data});
-      } else {
-        robotTemplates[i] = {...data};
-      }
-      babylon.resetScene();
-      skulpt.hardInterrupt = true;
-      simPanel.setRunIcon('run');
-      simPanel.initSensorsPanel();
     } catch (e) {
       showErrorModal(i18n.get('#main-invalid_robot_file_json#'));
     }
 
+    // Is it a world file?
+    if (typeof data.worldName != 'undefined') {
+      showErrorModal(i18n.get('#main-invalid_robot_file_world#'));
+      return;
+    }
+
+    // Is it a robot file?
+    if (typeof data.bodyHeight == 'undefined') {
+      showErrorModal(i18n.get('#main-invalid_robot_file_robot#'));
+      return;
+    }
+
+    robot.options = data;
+    let i = robotTemplates.findIndex(r => r.name == robot.options.name);
+    if (i == -1) {
+      robotTemplates.push({...data});
+    } else {
+      robotTemplates[i] = {...data};
+    }
+    babylon.resetScene();
+    skulpt.hardInterrupt = true;
+    simPanel.setRunIcon('run');
+    simPanel.initSensorsPanel();
   };
 
   // Load robot from local json file
@@ -709,10 +708,11 @@ var main = new function() {
       let filename = e.target.files[0].name;
       if (filename.endsWith('.zip')) {
         self.loadPythonFromComputerZip(e);
+        self.$projectName.val(filename.replace(/\.zip$/, ''));
       } else {
         self.loadSinglePythonFile(e);
+        self.$projectName.val(filename.replace(/\.py$/, ''));
       }
-      self.$projectName.val(filename.replace(/\.py$/, ''));
       self.saveProjectName();
     });
   };
@@ -831,38 +831,34 @@ var main = new function() {
 
   // Display what's new if not seen before
   this.showWhatsNew = function(forceShow=false) {
-    let current = 20250904;
+    let current = 20260731;
     let lastShown = localStorage.getItem('whatsNew');
     if (lastShown == null || parseInt(lastShown) < current || forceShow) {
       let options = {
         title: 'What\'s New',
         message:
-          '<h3>4 Sep 2025 (Blockly 12.3.0)</h3>' +
+          '<h3>31 Jul 2026 (Omni Wheels)</h3>' +
           '<p>' +
-            'Updated the blocks library (Blockly) to version 12.3.0. ' +
-            'This should fix a long standing bug that causes the if/else block to generate incorrect code is some circumstances. ' +
-            'I\'ve also added a blocks minimap; this should make large programs easier to navigate. ' +
+            'Added Omni Wheels; you can add it to your robot using the robot configurator. ' +
+            'This allows you to create robots with holonomic movement capabilities. ' +
+            'See <a href="https://youtu.be/JLA5hO20wvg" target="_blank">this YouTube video</a> for a demo.' +
           '</p>' +
+          '<h3>3 Feb 2026 (WRO Future Engineer)</h3>' +
           '<p>' +
-            'As this is a rather major update, please let me know if you encounter any issues. ' +
-          '</p>' +
-          '<h3>29 Aug 2025 (FLL 2025, WRO 2025, WRO 2024)</h3>' +
-          '<p>' +
-            'Added the playfield for FLL 2025, WRO 2025, and WRO 2024. ' +
+            'Added the playfield for WRO Future Engineer (2025 Playfield). ' +
             'Find it under "Worlds => Select World => Missions". ' +
+            'See <a href="https://youtu.be/jc1r_H7WTIU" target="_blank">this YouTube video</a> for a demo.' +
+          '</p>' +
+          '<h3>31 Jan 2026 (WRO RoboSport)</h3>' +
+          '<p>' +
+            'Added the playfield for WRO RoboSport (2025 Playfield). ' +
+            'Find it under "Worlds => Select World => Missions". ' +
+            'Also available in the multi-robot arena.' +
+            'See <a href="https://youtu.be/wz15pH2amHY" target="_blank">this YouTube video</a> for a demo.' +
           '</p>' +
           '<p>' +
-            'Unfortunately, I haven\'t found the time to add in the mission models for most of these, but I\'ll rather not delay it any longer. ' +
-            'Adding mission models can take a lot of time; if anyone is keen to help, do get in touch. ' +
-          '</p>' +
-          '<h3>28 Jul 2025 (Python Editor and Color Sensor)</h3>' +
-          '<p>' +
-            'Multi-file support for the Python editor has been changed to the <a href="https://tutorials.aposteriori.com.sg/120-IoTy/10-Introduction/10-Intro.html">IoTy style</a>, making it easier for me to maintain. ' +
-            'Saving of Python to computer now produces a zip file containing all Python code. ' +
-            'Autocomplete has also been improved thanks to sgmurray.' +
-          '</p>' +
-          '<p>' +
-            'Pen traces and paintball splatter can now be visible to the camera (...needs to be set in the robot configurator). ' +
+            'A sample robot for the RoboSport challenge has also been added. ' +
+            'Find it under "Robot => Select Robot => WRO RoboSport". ' +
           '</p>'
       }
       acknowledgeDialog(options, function(){
