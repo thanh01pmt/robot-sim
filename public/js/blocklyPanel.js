@@ -70,44 +70,43 @@ var blocklyPanel = new function() {
 
   // Add a new page
   this.addPage = function($li) {
-    var newPage = prompt(i18n.get('#blockly-new_page_name#'));
-    if (!newPage) {
-      return;
-    }
+    promptDialog({
+      title: i18n.get('#blockly-add_page#'),
+      message: i18n.get('#blockly-new_page_name#')
+    }, function(newPage) {
+      if (!newPage) return;
+      newPage = newPage.trim();
+      if (newPage == '') return;
 
-    newPage = newPage.trim();
-    if (newPage == '') {
-      return;
-    }
-
-    if (self.pages.filter(page => page == newPage).length > 0) {
-      toastMsg(i18n.get('#blockly-page_name#') + ' "' + newPage + '" ' + i18n.get('#blockly-is_in_use#'));
-      return;
-    }
-    self.pages.push(newPage);
-    self.loadPage(newPage);
-    toastMsg(i18n.get('#blockly-page#') + ' "' + newPage + '" ' + i18n.get('#blockly-added#'));
+      if (self.pages.filter(page => page == newPage).length > 0) {
+        toastMsg(i18n.get('#blockly-page_name#') + ' "' + newPage + '" ' + i18n.get('#blockly-is_in_use#'));
+        return;
+      }
+      self.pages.push(newPage);
+      self.loadPage(newPage);
+      toastMsg(i18n.get('#blockly-page#') + ' "' + newPage + '" ' + i18n.get('#blockly-added#'));
+    });
   };
 
   // Copy page
   this.copyCurrentPage = function() {
-    var destinationName = prompt(i18n.get('#blockly-copy_to_page_name#'), self.currentPage);
-    if (!destinationName) {
-      return;
-    }
+    promptDialog({
+      title: i18n.get('#blockly-copy_page#'),
+      message: i18n.get('#blockly-copy_to_page_name#'),
+      defaultValue: self.currentPage
+    }, function(destinationName) {
+      if (!destinationName) return;
+      destinationName = destinationName.trim();
+      if (destinationName == '') return;
 
-    destinationName = destinationName.trim();
-    if (destinationName == '') {
-      return;
-    }
-
-    if (self.pages.filter(page => page == destinationName).length == 0) {
-      self.pages.push(destinationName);
-    }
-    blockly.assignOrphenToPage(self.currentPage);
-    blockly.copyPage(self.currentPage, destinationName);
-    toastMsg(i18n.get('#blockly-page#') + ' "' + self.currentPage + '" ' + i18n.get('#blockly-copied_to#') + ' "' + destinationName + '".');
-    self.loadPage(destinationName);
+      if (self.pages.filter(page => page == destinationName).length == 0) {
+        self.pages.push(destinationName);
+      }
+      blockly.assignOrphenToPage(self.currentPage);
+      blockly.copyPage(self.currentPage, destinationName);
+      toastMsg(i18n.get('#blockly-page#') + ' "' + self.currentPage + '" ' + i18n.get('#blockly-copied_to#') + ' "' + destinationName + '".');
+      self.loadPage(destinationName);
+    });
   };
 
   // Move selected blocks
@@ -126,23 +125,23 @@ var blocklyPanel = new function() {
       return;
     }
 
-    var destinationName = prompt(i18n.get('#blockly-move_to_page_name#'), self.currentPage);
-    if (!destinationName) {
-      return;
-    }
+    promptDialog({
+      title: i18n.get('#blockly-move_selected#'),
+      message: i18n.get('#blockly-move_to_page_name#'),
+      defaultValue: self.currentPage
+    }, function(destinationName) {
+      if (!destinationName) return;
+      destinationName = destinationName.trim();
+      if (destinationName == '') return;
 
-    destinationName = destinationName.trim();
-    if (destinationName == '') {
-      return;
-    }
-
-    if (self.pages.filter(page => page == destinationName).length == 0) {
-      self.pages.push(destinationName);
-    }
-    blockly.assignOrphenToPage(self.currentPage);
-    blockly.moveSelected(block, destinationName);
-    toastMsg(i18n.get('#blockly-moved_to#') + ' "' + destinationName + '".');
-    self.loadPage(self.currentPage);
+      if (self.pages.filter(page => page == destinationName).length == 0) {
+        self.pages.push(destinationName);
+      }
+      blockly.assignOrphenToPage(self.currentPage);
+      blockly.moveSelected(block, destinationName);
+      toastMsg(i18n.get('#blockly-moved_to#') + ' "' + destinationName + '".');
+      self.loadPage(self.currentPage);
+    });
   };
 
   // Rename page
@@ -152,24 +151,25 @@ var blocklyPanel = new function() {
       return;
     }
 
-    var newName = prompt(i18n.get('#blockly-new_page_name#'), self.currentPage);
-    if (!newName) {
-      return;
-    }
+    promptDialog({
+      title: i18n.get('#blockly-rename_page#'),
+      message: i18n.get('#blockly-new_page_name#'),
+      defaultValue: self.currentPage
+    }, function(newName) {
+      if (!newName) return;
+      newName = newName.trim();
+      if (newName == '') return;
 
-    newName = newName.trim();
-    if (newName == '') {
-      return;
-    }
-    if (self.pages.filter(page => page == newName).length > 0) {
-      toastMsg(i18n.get('#blockly-page_name#') + ' "' + newName + '" ' + i18n.get('#blockly-is_in_use#'));
-      return;
-    }
+      if (self.pages.filter(page => page == newName).length > 0) {
+        toastMsg(i18n.get('#blockly-page_name#') + ' "' + newName + '" ' + i18n.get('#blockly-is_in_use#'));
+        return;
+      }
 
-    let i = self.pages.indexOf(self.currentPage);
-    self.pages[i] = newName;
-    blockly.changePageName(self.currentPage, newName);
-    self.loadPage(newName);
+      let i = self.pages.indexOf(self.currentPage);
+      self.pages[i] = newName;
+      blockly.changePageName(self.currentPage, newName);
+      self.loadPage(newName);
+    });
   };
 
   // Delete current page
@@ -219,11 +219,29 @@ var blocklyPanel = new function() {
     self.$panel.addClass('hide');
   };
 
-  // Disable blockly by covering with blank div
+  // Disable blockly by covering with friendly banner card
   this.setDisable = function(state) {
     if (state == true) {
       if (self.$panel.find('.disable').length < 1) {
-        self.$panel.append('<div class="disable"><div class="enable">' + i18n.get('#blockly-enable_blocks#') + '</div></div>');
+        let isVi = typeof LANG !== 'undefined' && LANG === 'vi';
+        let title = isVi ? 'Chế độ Python đang hoạt động' : 'Python Mode Active';
+        let desc = isVi
+          ? 'Mã nguồn Python trong dự án đang được tùy chỉnh. Bạn có thể tiếp tục chỉnh sửa bên tab Python hoặc nhấn nút bên dưới để quay lại lập trình bằng Khối lệnh.'
+          : 'Python code has been modified. You can continue editing in the Python tab, or click below to return to visual Blocks programming.';
+        let btnText = i18n.get('#blockly-enable_blocks#');
+
+        let $overlay = $(
+          '<div class="disable">' +
+            '<div class="gb-disable-card">' +
+              '<div class="gb-disable-badge">' + (isVi ? 'Thông báo' : 'Notice') + '</div>' +
+              '<div class="gb-disable-title">' + title + '</div>' +
+              '<div class="gb-disable-desc">' + desc + '</div>' +
+              '<button type="button" class="enable gb-btn primary">' + btnText + '</button>' +
+            '</div>' +
+          '</div>'
+        );
+        self.$panel.append($overlay);
+
         if (Blockly.selected) {
           Blockly.selected.unselect();
         }
@@ -241,12 +259,15 @@ var blocklyPanel = new function() {
   // Re-enable blocks mode
   this.enableBlocks = function(){
     confirmDialog(i18n.get('#blockly-python_lost_warning#'), function(){
-      // pythonPanel.modified = false;
       filesManager.modified = false;
+      localStorage.setItem('gearsPythonModified', false);
       localStorage.setItem('pythonModified', false);
       self.setDisable(false);
+      if (typeof blockly !== 'undefined' && typeof blockly.updatePythonCode === 'function') {
+        blockly.updatePythonCode();
+      }
     });
-  }
+  };
 
   // Save
   this.save = function() {

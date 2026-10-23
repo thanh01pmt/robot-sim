@@ -136,10 +136,15 @@ var simPanel = new function() {
 
   // Run when the simPanel in active
   this.onActive = function() {
-    if (babylon.engine._activeRenderLoops.length == 0)
-    babylon.engine.runRenderLoop(function(){
-      babylon.scene.render();
-    });
+    if (typeof babylon !== 'undefined' && babylon.engine && babylon.scene) {
+      if (!babylon.engine._activeRenderLoops || babylon.engine._activeRenderLoops.length == 0) {
+        babylon.engine.runRenderLoop(function(){
+          if (babylon.scene) {
+            babylon.scene.render();
+          }
+        });
+      }
+    }
   };
 
   // Setup virtual joystick
@@ -633,6 +638,7 @@ var simPanel = new function() {
     i = robot.processedOptions.wheels ? 3 : 1;
     var motor = null;
     while (motor = robot.getComponentByPort('out' + PORT_LETTERS[i])) {
+      let tmp = null;
       if (motor.type == 'ArmActuator') {
         tmp = genDiv(
           motor.port + ': ' + i18n.get('#sim-arm#'),
@@ -666,6 +672,11 @@ var simPanel = new function() {
       } else if (motor.type == 'WheelOmniActuator') {
         tmp = genDiv(
           motor.port + ': ' + i18n.get('#sim-wheel#'),
+          [i18n.get('#sim-position#')]
+          );
+      } else if (motor.type == 'ClawActuator') {
+        tmp = genDiv(
+          motor.port + ': Claw Gripper',
           [i18n.get('#sim-position#')]
           );
       }
@@ -710,6 +721,8 @@ var simPanel = new function() {
         sensor[1][0].text(Math.round(sensor[0].position));
       } else if (sensor[0].type == 'ArmActuator') {
         sensor[1][0].text(Math.round(sensor[0].position));
+      } else if (sensor[0].type == 'ClawActuator') {
+        sensor[1][0].text(Math.round(sensor[0].position));
       } else if (sensor[0].type == 'LaserRangeSensor') {
         sensor[1][0].text(Math.round(sensor[0].getDistance() * 10) / 10);
       } else if (sensor[0].type == 'TouchSensor') {
@@ -739,15 +752,12 @@ var simPanel = new function() {
     if (e.currentTarget.classList.contains('cameraArc')) {
       babylon.setCameraMode('arc');
       self.$camera.html('<span class="icon-cameraArc"></span>');
-
     } else if (e.currentTarget.classList.contains('cameraFollow')) {
       babylon.setCameraMode('follow');
       self.$camera.html('<span class="icon-cameraFollow"></span>');
-
     } else if (e.currentTarget.classList.contains('cameraTop')) {
       babylon.setCameraMode('orthoTop');
       self.$camera.html('<span class="icon-cameraTop"></span>');
-
     } else if (e.currentTarget.classList.contains('resetCamera')) {
       babylon.resetCamera();
       babylon.setCameraMode('follow');
@@ -759,9 +769,12 @@ var simPanel = new function() {
 
   // Toggle camera selector
   this.toggleCameraSelector = function() {
-    let current = self.$camera.children()[0].className.replace('icon-', '');
-    self.$cameraSelector.children().removeClass('hide');
-    self.$cameraSelector.find('.' + current).addClass('hide');
+    let $icon = self.$camera.find('[class*="icon-"]');
+    let current = $icon.length ? ($icon.attr('class').split(' ').find(c => c.startsWith('icon-')) || '').replace('icon-', '') : '';
+    self.$cameraSelector.find('.cameraOptions').removeClass('hide');
+    if (current) {
+      self.$cameraSelector.find('.cameraOptions.' + current).addClass('hide');
+    }
     self.$cameraSelector.toggleClass('closed');
   };
 

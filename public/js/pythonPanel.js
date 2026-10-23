@@ -17,19 +17,24 @@ var pythonPanel = new function() {
 
   // Increase font size
   this.zoomIn = function() {
-    let currentSize = parseFloat(self.$pythonCode.css('font-size'));
-    self.$pythonCode.css('font-size', currentSize * 1.25);
+    let currentSize = parseFloat(self.$pythonCode.css('font-size')) || 14;
+    let newSize = Math.min(28, Math.round(currentSize + 2));
+    self.$pythonCode.css('font-size', newSize + 'px');
+    if (self.editor) self.editor.setFontSize(newSize);
   };
 
   // Decrease font size
   this.zoomOut = function() {
-    let currentSize = parseFloat(self.$pythonCode.css('font-size'));
-    self.$pythonCode.css('font-size', currentSize * 0.8);
+    let currentSize = parseFloat(self.$pythonCode.css('font-size')) || 14;
+    let newSize = Math.max(11, Math.round(currentSize - 2));
+    self.$pythonCode.css('font-size', newSize + 'px');
+    if (self.editor) self.editor.setFontSize(newSize);
   };
 
   // Reset font size
   this.zoomReset = function() {
-    self.$pythonCode.css('font-size', '120%');
+    self.$pythonCode.css('font-size', '14px');
+    if (self.editor) self.editor.setFontSize(14);
   };
 
   // // Update text already in html
@@ -44,6 +49,7 @@ var pythonPanel = new function() {
       self.loadPythonFromBlockly();
     }
     self.$pythonCode.removeClass('hide');
+    if (self.editor) self.editor.resize();
   };
 
   // Run when panel is inactive
@@ -57,7 +63,10 @@ var pythonPanel = new function() {
     self.editor = ace.edit('pythonCode');
     self.editor.setTheme('ace/theme/monokai');
     self.editor.session.setMode('ace/mode/python');
+    self.editor.setFontSize(14);
     self.editor.setOptions({
+      fontSize: "14px",
+      fontFamily: "'JetBrains Mono', 'Roboto Mono', Consolas, monospace",
       enableBasicAutocompletion: true,
       enableSnippets: true, // Required for argument placeholders in our custom completer
       enableLiveAutocompletion: true

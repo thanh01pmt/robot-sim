@@ -21,8 +21,9 @@ function setOnClickAnimation($buttons) {
 
 // File menu dropdown
 function menuDropDown($menuBtn, menuItems, options) {
+  options = options || {};
   var $dropDown = $(
-    '<ul class="menuDropDown ' + options.className + '"></ul>'
+    '<ul class="menuDropDown ' + (options.className || '') + '"></ul>'
   );
 
   menuItems.forEach(function(menuItem) {
@@ -35,19 +36,21 @@ function menuDropDown($menuBtn, menuItems, options) {
     $dropDown.append($li);
   });
 
-  if (options.parentIsAbsolute) {
-    $dropDown.addClass('menuDropDownRightAlign')
-  } else {
-    let top = $menuBtn[0].offsetTop + $menuBtn[0].offsetHeight;
-    $dropDown.css('top', top);
+  // Ensure $menuBtn is positioned so absolute child aligns to it
+  if ($menuBtn.css('position') === 'static') {
+    $menuBtn.css('position', 'relative');
   }
 
-  if (options.align == 'right') {
-    $dropDown.css('left', 'auto');
-    $dropDown.css('right', '0');
+  $dropDown.css({
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    zIndex: 9999
+  });
+
+  if (options.align === 'right') {
+    $dropDown.css({ left: 'auto', right: '0' });
   } else {
-    let left = $menuBtn[0].offsetLeft;
-    $dropDown.css('left', left);
+    $dropDown.css({ left: '0', right: 'auto' });
   }
 
   $(document).one('click', function(e){
@@ -55,6 +58,14 @@ function menuDropDown($menuBtn, menuItems, options) {
   });
 
   $menuBtn.append($dropDown);
+
+  // Prevent overflowing right boundary of viewport
+  try {
+    var rect = $dropDown[0].getBoundingClientRect();
+    if (rect.right > window.innerWidth - 8) {
+      $dropDown.css({ left: 'auto', right: '0' });
+    }
+  } catch (err) {}
 
   return $menuBtn;
 }
@@ -144,7 +155,10 @@ function dialog(title, $bodyContent, $buttons, className='') {
   var $dialog = $('<div class="dialogScreen '+ className + '"></div>');
   var $box = $(
     '<div class="dialogWindow">' +
-    '<div class="dialogTitle">' + title + '</div>' +
+      '<div class="dialogTitle">' +
+        '<span class="dialogTitleText">' + title + '</span>' +
+        '<button type="button" class="dialogCloseBtn" title="Close">&times;</button>' +
+      '</div>' +
     '</div>'
   );
   var $body = $('<div class="dialogBody"></div>');
@@ -170,6 +184,16 @@ function dialog(title, $bodyContent, $buttons, className='') {
     });
     $box.addClass('animatedHide');
   };
+
+  $box.find('.dialogCloseBtn').on('click', function() {
+    $dialog.close();
+  });
+
+  $dialog.on('click', function(e) {
+    if (e.target === $dialog[0]) {
+      $dialog.close();
+    }
+  });
 
   $('html > body').append($dialog);
 
@@ -200,8 +224,71 @@ function confirmDialog(options, callback) {
 
   var $dialog = dialog(options.title, bodyContent, $buttons);
 
-  $buttons.siblings('.cancel').click(function() { $dialog.close(); });
-  $buttons.siblings('.confirm').click(function() { $dialog.close(); callback(); });
+  $buttons.siblings('.cancel').click(function() { $dialog.close(); if (typeof options.onCancel === 'function') options.onCancel(); });
+  $buttons.siblings('.confirm').click(function() { $dialog.close(); if (typeof callback === 'function') callback(); });
+
+  return $dialog;
+}
+
+// Modern Prompt Dialog (replaces window.prompt across Blockly & Pages)
+function promptDialog(options, callback) {
+  if (typeof options == 'string') {
+    options = { message: options };
+  }
+  var title = options.title || (typeof LANG !== 'undefined' && LANG === 'vi' ? 'Nhập thông tin' : 'Input');
+  var message = options.message || '';
+  var defaultValue = typeof options.defaultValue !== 'undefined' ? options.defaultValue : '';
+  var cancelLabel = options.cancel || (typeof LANG !== 'undefined' && LANG === 'vi' ? 'Hủy' : 'Cancel');
+  var confirmLabel = options.confirm || 'OK';
+
+  var $body = $(
+    '<div class="promptDialogContent">' +
+      (message ? '<div style="margin-bottom:8px; font-weight:600; color:#334155;"></div>' : '') +
+      '<input type="text" class="promptDialogInput" style="width:100%;" />' +
+    '</div>'
+  );
+  if (message) {
+    $body.find('div').first().text(message);
+  }
+  var $input = $body.find('.promptDialogInput');
+  $input.val(defaultValue);
+
+  var $buttons = $(
+    '<button type="button" class="cancel btn btn-light">' + cancelLabel + '</button>' +
+    '<button type="button" class="confirm btn btn-success">' + confirmLabel + '</button>'
+  );
+
+  var $dialog = dialog(title, $body, $buttons);
+
+  function submit() {
+    var val = $input.val();
+    $dialog.close();
+    if (typeof callback === 'function') callback(val);
+  }
+
+  function cancel() {
+    $dialog.close();
+    if (typeof callback === 'function') callback(null);
+  }
+
+  $buttons.siblings('.cancel').on('click', cancel);
+  $buttons.siblings('.confirm').on('click', submit);
+  $input.on('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancel();
+    }
+  });
+
+  setTimeout(function() {
+    $input.trigger('focus');
+    if ($input[0] && typeof $input[0].select === 'function') {
+      $input[0].select();
+    }
+  }, 50);
 
   return $dialog;
 }
@@ -247,3 +334,30 @@ function showErrorModal(errors) {
 
   acknowledgeDialog(options);
 }
+
+// Automatically wire Blockly's internal prompt/confirm/alert dialogs to our modern UI modals
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof Blockly !== 'undefined' && Blockly.dialog) {
+    if (typeof Blockly.dialog.setPrompt === 'function') {
+      Blockly.dialog.setPrompt(function(message, defaultValue, callback) {
+        promptDialog({ message: message, defaultValue: defaultValue }, callback);
+      });
+    }
+    if (typeof Blockly.dialog.setAlert === 'function') {
+      Blockly.dialog.setAlert(function(message, callback) {
+        acknowledgeDialog({ title: 'Notice', message: message }, callback);
+      });
+    }
+    if (typeof Blockly.dialog.setConfirm === 'function') {
+      Blockly.dialog.setConfirm(function(message, callback) {
+        confirmDialog({
+          title: 'Confirm',
+          message: message,
+          onCancel: function() { if (callback) callback(false); }
+        }, function() {
+          if (callback) callback(true);
+        });
+      });
+    }
+  }
+});

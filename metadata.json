@@ -1,0 +1,5 @@
+{
+  "name": "GearsBot Robotics Simulator",
+  "description": "Generic Educational Autonomous Robotics Simulator for experimenting with 3D robotics, Blockly visual programming, and Python (Ev3dev & Pybricks) in the browser.",
+  "requestFramePermissions": []
+}

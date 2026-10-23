@@ -233,10 +233,14 @@ function ColorSensor(scene, parent, pos, rot, port, options) {
     self.renderTarget.clearColor = BABYLON.Color3.Black();
     scene.customRenderTargets.push(self.renderTarget);
     self.renderTarget.activeCamera = self.rttCam;
-    // self.renderTarget.refreshRate = BABYLON.RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+    if (typeof babylon !== 'undefined' && babylon.perfConfig) {
+      self.renderTarget.refreshRate = babylon.perfConfig.rttRefreshRate || 1;
+    }
 
     self.pixels = new Uint8Array(self.options.sensorResolution ** 2 * 4);
     self.waitingSync = false;
+    self.lastReadTime = 0;
+    self.cachedRGB = [255, 255, 255];
 
     self.renderTarget.onBeforeRender = function() {
       self.renderTarget.renderList.forEach((mesh) => {
@@ -419,11 +423,20 @@ function ColorSensor(scene, parent, pos, rot, port, options) {
   }
 
   this.getRGB = function() {
+    var now = performance.now();
+    var minInterval = (typeof babylon !== 'undefined' && babylon.perfConfig)
+      ? babylon.perfConfig.sensorReadIntervalMs
+      : 25;
+
+    if (now - self.lastReadTime < minInterval && self.cachedRGB) {
+      return self.cachedRGB;
+    }
+    self.lastReadTime = now;
+
     var r = 0;
     var g = 0;
     var b = 0;
 
-    // self.renderTarget.resetRefreshCounter();
     if (babylon.engine._webGLVersion < 2 || babylon.DISABLE_ASYNC) {
       self.renderTarget.readPixels(0, 0, self.pixels);
     }
@@ -437,7 +450,8 @@ function ColorSensor(scene, parent, pos, rot, port, options) {
     self.r = r;
     self.g = g;
     self.b = b;
-    return [r / self.maskSize, g / self.maskSize, b / self.maskSize];
+    self.cachedRGB = [r / self.maskSize, g / self.maskSize, b / self.maskSize];
+    return self.cachedRGB;
   };
 
   this.init();
@@ -1238,9 +1252,9 @@ function MagnetActuator(scene, parent, pos, rot, port, options) {
 
   this.setOptions = function(options) {
     self.options = {
-      maxRange: 8,
-      maxPower: 4000,
-      dGain : 0.08
+      maxRange: 11,
+      maxPower: 6500,
+      dGain: 0.12
     };
 
     for (let name in options) {
@@ -1263,14 +1277,39 @@ function MagnetActuator(scene, parent, pos, rot, port, options) {
     } else if (self.mode == self.modes.RUN_TO_POS) {
       self.setPower(self.speed_sp / 1050);
     }
+
+    if (!self.fieldRing && self.attractor) {
+      self.fieldRing = BABYLON.MeshBuilder.CreateTorus('magnetFieldRing', {
+        diameter: 3.4,
+        thickness: 0.22,
+        tessellation: 18
+      }, scene);
+      var ringMat = new BABYLON.StandardMaterial('magnetRingMat', scene);
+      ringMat.emissiveColor = new BABYLON.Color3(0.02, 0.71, 0.83);
+      ringMat.diffuseColor = new BABYLON.Color3(0.02, 0.71, 0.83);
+      ringMat.alpha = 0.75;
+      self.fieldRing.material = ringMat;
+      self.fieldRing.parent = self.attractor;
+      self.fieldRing.position.y = -0.45;
+      self.fieldRing.isPickable = false;
+      self.fieldRing.setEnabled(false);
+    }
+
+    if (self.fieldRing) {
+      self.fieldRing.setEnabled(Math.abs(self.power) > 10);
+    }
+
     scene.meshes.forEach(self.applyMagneticForce);
   };
 
   this.applyMagneticForce = function(mesh) {
-    if (! mesh.isMagnetic) {
+    if (!mesh.isMagnetic) {
       return;
     }
     if (self.power == 0) {
+      if (mesh._lockedByMagnet === self) {
+        mesh._lockedByMagnet = null;
+      }
       return;
     }
 
@@ -1278,6 +1317,9 @@ function MagnetActuator(scene, parent, pos, rot, port, options) {
     let distance = vec.length();
 
     if (distance > self.options.maxRange) {
+      if (mesh._lockedByMagnet === self) {
+        mesh._lockedByMagnet = null;
+      }
       return;
     }
 
@@ -1293,23 +1335,41 @@ function MagnetActuator(scene, parent, pos, rot, port, options) {
     }
 
     let meshPhysicsParent = getPhysicsParent(mesh);
+    if (!meshPhysicsParent || !meshPhysicsParent.physicsImpostor) {
+      return;
+    }
 
-    let power = 1 / distance^2 * self.power;
-    if (self.power < 0){
+    let distSq = Math.max(distance * distance, 1.8);
+    let power = (self.power * 16) / distSq;
+
+    if (self.power < 0) {
+      mesh._lockedByMagnet = null;
       vec.normalize();
       meshPhysicsParent.physicsImpostor.applyForce(vec.scale(power), mesh.absolutePosition);
-    }
-    else{
-      let meshVel = meshPhysicsParent.physicsImpostor.getLinearVelocity();
+    } else {
+      // Firm magnetic hold when close to the attractor
+      if (distance < 3.6) {
+        mesh._lockedByMagnet = self;
+        let targetPos = self.attractor.absolutePosition.clone();
+        targetPos.y -= 1.25;
+        let holdVec = targetPos.subtract(meshPhysicsParent.absolutePosition);
+        let physicsParent = getPhysicsParent(self.body);
+        let bodyVel = physicsParent && physicsParent.physicsImpostor
+          ? physicsParent.physicsImpostor.getLinearVelocity()
+          : BABYLON.Vector3.Zero();
+        meshPhysicsParent.physicsImpostor.setLinearVelocity(bodyVel.add(holdVec.scale(14)));
+        meshPhysicsParent.physicsImpostor.setAngularVelocity(BABYLON.Vector3.Zero());
+        return;
+      }
 
+      let meshVel = meshPhysicsParent.physicsImpostor.getLinearVelocity();
       let physicsParent = getPhysicsParent(self.body);
       let center = physicsParent.absolutePosition;
       let centerVel = physicsParent.physicsImpostor.getLinearVelocity();
       let omega = physicsParent.physicsImpostor.getAngularVelocity();
-      let bodyVel = centerVel.add(BABYLON.Vector3.Cross(omega,mesh.absolutePosition.subtract(center)));
+      let bodyVel = centerVel.add(BABYLON.Vector3.Cross(omega, mesh.absolutePosition.subtract(center)));
 
       let error = meshVel.subtract(bodyVel);
-
       let normalVec = vec.normalize();
       error.subtractInPlace(normalVec.scale(BABYLON.Vector3.Dot(error, normalVec)));
 
@@ -1325,6 +1385,8 @@ function MagnetActuator(scene, parent, pos, rot, port, options) {
   this.setPower = function(fraction) {
     if (fraction > 1) {
       fraction = 1;
+    } else if (fraction < -1) {
+      fraction = -1;
     }
     self.power = fraction * self.options.maxPower;
   };
@@ -3946,6 +4008,287 @@ function WheelOmni(scene, parent, pos, rot, port, options) {
     this.normalVector.rotateByQuaternionAroundPointToRef(self.mesh.absoluteRotationQuaternion, zero, rotatedNormalVector);
 
     return BABYLON.Vector3.GetAngleBetweenVectors(rotatedBodyVector, rotatedWheelVector, rotatedNormalVector);
+  };
+
+  this.init();
+}
+
+// Motorized Parallel Claw / Gripper Actuator (Spike Prime & EV3 Competition Claw)
+function ClawActuator(scene, parent, pos, rot, port, options) {
+  var self = this;
+
+  this.type = 'ClawActuator';
+  this.port = port;
+  this.options = null;
+  this.components = [];
+
+  this.bodyPosition = new BABYLON.Vector3(pos[0], pos[1], pos[2]);
+  this.rotation = new BABYLON.Vector3(rot[0], rot[1], rot[2]);
+
+  this.modes = {
+    STOP: 1,
+    RUN: 2,
+    RUN_TO_POS: 3,
+    RUN_TIL_TIME: 4
+  };
+  this.mode = this.modes.STOP;
+  this.states = {
+    RUNNING: 'running',
+    RAMPING: 'ramping',
+    HOLDING: 'holding',
+    OVERLOADED: 'overloaded',
+    STATE_STALLED: 'stalled',
+    NONE: ''
+  };
+  this.state = this.states.HOLDING;
+
+  this.speed = 0;
+  this.speed_sp = 200;
+  this.position_sp = 0;
+  this.position_target = 0;
+  this.position = 0; // 0 = open, 90 = fully closed
+  this.prevPosition = 0;
+  this.positionAdjustment = 0;
+  this.graspedMesh = null;
+
+  this.runTimed = function() {
+    self.positionDirectionReversed = false;
+    self.mode = self.modes.RUN_TIL_TIME;
+    self.state = self.states.RUNNING;
+  };
+
+  this.runToPosition = function() {
+    self.positionDirectionReversed = self.position_target < self.position;
+    self.mode = self.modes.RUN_TO_POS;
+    self.state = self.states.RUNNING;
+  };
+
+  this.runForever = function() {
+    self.positionDirectionReversed = false;
+    self.mode = self.modes.RUN;
+    self.state = self.states.RUNNING;
+  };
+
+  this.stop = function() {
+    self.mode = self.modes.STOP;
+    self.position_target = self.position;
+    self.state = self.states.HOLDING;
+  };
+
+  this.reset = function() {
+    self.positionAdjustment += self.position;
+    self.position = 0;
+    self.prevPosition = 0;
+    self.position_target = 0;
+    self.graspedMesh = null;
+    self.mode = self.modes.STOP;
+    self.state = self.states.HOLDING;
+  };
+
+  this.setOptions = function(opts) {
+    self.options = {
+      jawLength: 6.5,
+      jawSpread: 4.8,
+      baseColor: '06B6D4',
+      jawColor: 'F59E0B',
+      gripRange: 6.0,
+      components: []
+    };
+    for (let name in opts) {
+      if (typeof self.options[name] !== 'undefined') {
+        self.options[name] = opts[name];
+      }
+    }
+  };
+
+  this.init = function() {
+    self.setOptions(options);
+
+    var baseMat = babylon.getMaterial(scene, self.options.baseColor);
+    var jawMat = babylon.getMaterial(scene, self.options.jawColor);
+
+    var body = BABYLON.MeshBuilder.CreateBox('clawBase', { height: 2.0, width: self.options.jawSpread + 1.6, depth: 2.2 }, scene);
+    self.body = body;
+    self.end = body;
+    body.component = self;
+    body.material = baseMat;
+    body.parent = parent;
+    body.position = self.bodyPosition.clone();
+    body.rotate(BABYLON.Axis.X, self.rotation.x, BABYLON.Space.LOCAL);
+    body.rotate(BABYLON.Axis.Y, self.rotation.y, BABYLON.Space.LOCAL);
+    body.rotate(BABYLON.Axis.Z, self.rotation.z, BABYLON.Space.LOCAL);
+    scene.shadowGenerator.addShadowCaster(body);
+
+    self.leftJaw = BABYLON.MeshBuilder.CreateBox('clawJawL', { height: 1.8, width: 0.7, depth: self.options.jawLength }, scene);
+    self.leftJaw.material = jawMat;
+    self.leftJaw.parent = body;
+    self.leftJaw.position = new BABYLON.Vector3(-self.options.jawSpread / 2, -0.2, self.options.jawLength / 2 + 0.5);
+
+    self.rightJaw = BABYLON.MeshBuilder.CreateBox('clawJawR', { height: 1.8, width: 0.7, depth: self.options.jawLength }, scene);
+    self.rightJaw.material = jawMat;
+    self.rightJaw.parent = body;
+    self.rightJaw.position = new BABYLON.Vector3(self.options.jawSpread / 2, -0.2, self.options.jawLength / 2 + 0.5);
+
+    self.gripPoint = new BABYLON.TransformNode('clawGripPoint', scene);
+    self.gripPoint.parent = body;
+    self.gripPoint.position = new BABYLON.Vector3(0, -0.3, self.options.jawLength * 0.72);
+  };
+
+  this.loadImpostor = function() {
+    self.body.physicsImpostor = new BABYLON.PhysicsImpostor(
+      self.body,
+      BABYLON.PhysicsImpostor.BoxImpostor,
+      { mass: 0 },
+      scene
+    );
+  };
+
+  this.render = function(delta) {
+    if (!delta || delta <= 0) return;
+
+    let stepDeg = (self.speed_sp * delta) / 1000;
+    if (self.mode == self.modes.RUN) {
+      self.position += stepDeg;
+    } else if (self.mode == self.modes.RUN_TIL_TIME) {
+      self.position += stepDeg;
+      if (Date.now() > self.time_target) {
+        self.stop();
+      }
+    } else if (self.mode == self.modes.RUN_TO_POS) {
+      let dir = self.positionDirectionReversed ? -1 : 1;
+      self.position += Math.abs(stepDeg) * dir;
+      if (
+        (!self.positionDirectionReversed && self.position >= self.position_target) ||
+        (self.positionDirectionReversed && self.position <= self.position_target)
+      ) {
+        self.position = self.position_target;
+        self.stop();
+      }
+    }
+
+    if (self.position < 0) self.position = 0;
+    if (self.position > 100) self.position = 100;
+
+    self.speed = 0.8 * self.speed + 0.2 * ((self.position - self.prevPosition) / delta * 1000);
+    self.prevPosition = self.position;
+
+    // Update jaw pinch positions visually
+    let closeFraction = Math.min(1, Math.max(0, self.position / 75));
+    let halfOpen = (self.options.jawSpread / 2) * (1 - closeFraction * 0.68);
+    if (self.leftJaw && self.rightJaw) {
+      self.leftJaw.position.x = -halfOpen;
+      self.rightJaw.position.x = halfOpen;
+    }
+
+    // Physical grasping of cargo objects when jaws are closed (> 30 deg)
+    if (closeFraction >= 0.35) {
+      if (!self.graspedMesh) {
+        let gripPos = self.gripPoint.getAbsolutePosition();
+        let bestDist = self.options.gripRange;
+        let candidate = null;
+        scene.meshes.forEach(function(m) {
+          if (m.isGraspable || (m.isMagnetic && m.physicsImpostor && m.physicsImpostor.mass > 0)) {
+            let d = BABYLON.Vector3.Distance(gripPos, m.getAbsolutePosition());
+            if (d < bestDist) {
+              bestDist = d;
+              candidate = m;
+            }
+          }
+        });
+        if (candidate) {
+          self.graspedMesh = candidate;
+          candidate._graspedByClaw = self;
+        }
+      }
+
+      if (self.graspedMesh && self.graspedMesh.physicsImpostor) {
+        let targetPos = self.gripPoint.getAbsolutePosition();
+        let diff = targetPos.subtract(self.graspedMesh.getAbsolutePosition());
+        self.graspedMesh.physicsImpostor.setLinearVelocity(diff.scale(18));
+        self.graspedMesh.physicsImpostor.setAngularVelocity(BABYLON.Vector3.Zero());
+      }
+    } else {
+      if (self.graspedMesh) {
+        self.graspedMesh._graspedByClaw = null;
+        self.graspedMesh = null;
+      }
+    }
+  };
+
+  this.init();
+}
+
+// Custom 3D Model Component (.glb / .gltf importer for Spike Prime / EV3 mechanisms)
+function CustomModel(scene, parent, pos, rot, options) {
+  var self = this;
+
+  this.type = 'CustomModel';
+  this.options = null;
+  this.components = [];
+  this.position = new BABYLON.Vector3(pos[0], pos[1], pos[2]);
+  this.rotation = new BABYLON.Vector3(rot[0], rot[1], rot[2]);
+
+  this.setOptions = function(opts) {
+    self.options = {
+      modelURL: 'models/misc/lego_brick.glb',
+      scale: 1.0,
+      color: '06B6D4',
+      components: []
+    };
+    for (let name in opts) {
+      if (typeof self.options[name] !== 'undefined') {
+        self.options[name] = opts[name];
+      }
+    }
+  };
+
+  this.init = function() {
+    self.setOptions(options);
+    var body = BABYLON.MeshBuilder.CreateBox('customModelAnchor', { height: 1, width: 1, depth: 1 }, scene);
+    body.visibility = 0;
+    body.isPickable = false;
+    body.parent = parent;
+    body.position = self.position.clone();
+    body.rotate(BABYLON.Axis.X, self.rotation.x, BABYLON.Space.LOCAL);
+    body.rotate(BABYLON.Axis.Y, self.rotation.y, BABYLON.Space.LOCAL);
+    body.rotate(BABYLON.Axis.Z, self.rotation.z, BABYLON.Space.LOCAL);
+    self.body = body;
+    self.end = body;
+    body.component = self;
+
+    if (self.options.modelURL && typeof BABYLON.SceneLoader !== 'undefined') {
+      var url = self.options.modelURL;
+      var rootUrl = '';
+      var fileName = url;
+      if (!url.startsWith('blob:') && !url.startsWith('data:') && url.indexOf('/') !== -1) {
+        var lastSlash = url.lastIndexOf('/');
+        rootUrl = url.substring(0, lastSlash + 1);
+        fileName = url.substring(lastSlash + 1);
+      }
+      BABYLON.SceneLoader.ImportMesh('', rootUrl, fileName, scene, function(meshes) {
+        meshes.forEach(function(m) {
+          if (!m.parent) {
+            m.parent = body;
+            m.scaling = new BABYLON.Vector3(self.options.scale, self.options.scale, self.options.scale);
+          }
+          m.isPickable = false;
+        });
+      }, null, function() {
+        // Fallback procedural LEGO Technic beam if model fails to load
+        var fallback = BABYLON.MeshBuilder.CreateBox('technicFallback', { height: 1.6, width: 4.5, depth: 2.5 }, scene);
+        fallback.material = babylon.getMaterial(scene, self.options.color || '06B6D4');
+        fallback.parent = body;
+      });
+    }
+  };
+
+  this.loadImpostor = function() {
+    self.body.physicsImpostor = new BABYLON.PhysicsImpostor(
+      self.body,
+      BABYLON.PhysicsImpostor.BoxImpostor,
+      { mass: 0 },
+      scene
+    );
   };
 
   this.init();

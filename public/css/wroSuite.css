@@ -1,0 +1,1171 @@
+/* Unified GearsBot Design System — Playful Tech / Friendly STEM
+   Follows Design.md specifications:
+   - Primary Brand: Electric Blue #2F6BFF
+   - Main Background: #F5F7FA
+   - Panels & Cards: #FFFFFF
+   - Workspace / Tabs: #EEF2F7
+   - Subtle Border: #D9E1EC
+   - Text: #1F2937 (primary), #6B7280 (secondary)
+   - Success: #22C55E, Warning: #F59E0B, Error: #EF4444
+   - Fonts: 'Plus Jakarta Sans', system-ui, sans-serif
+   - Numbers / Code: 'JetBrains Mono', monospace
+   - Soft border radius (8px - 14px) and soft shadows
+*/
+
+/* 1. Global Typography & Clean Base */
+body,
+button,
+input,
+select,
+textarea {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.1px;
+}
+
+/* 2. Top Menu Bar item inherits native nav .menuBar .menuItem */
+nav .menuBar .menuItem.competitionMenu {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+nav .menuBar .menuItem.competitionMenu:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+/* Workspace Dragging & Smooth Resizing */
+body.is-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+body.is-resizing #codePanel,
+body.is-resizing #gearsSidePane {
+  transition: none !important;
+}
+
+.gb-pane-close-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.15s ease;
+}
+
+.gb-pane-close-btn:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #2563EB;
+}
+
+/* 3. 3-Panel Unified Architecture:
+   - Left: Coding Panel (#codePanel) - Collapsible & Resizable
+   - Center: Simulator (#simPanel) - Main Stage
+   - Right: Inspection Panel (#gearsSidePane) - Collapsible & Resizable
+*/
+.app-workspace {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100vw;
+  height: calc(100vh - 42px);
+  overflow: hidden;
+  position: relative;
+  background: #F5F7FA;
+}
+
+/* Left Panel: Coding Panel (Blocks & Python) */
+.app-workspace #codePanel.code-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 440px;
+  min-width: 280px;
+  max-width: 75vw;
+  height: 100%;
+  overflow: hidden;
+  background: #FFFFFF;
+  border-right: 1px solid #D9E1EC;
+  border-left: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  transition: width 0.05s ease;
+}
+
+.app-workspace #codePanel.code-stage.collapsed {
+  display: none !important;
+}
+
+/* Draggable Splitters (Left & Right) */
+.app-workspace .workspace-splitter {
+  width: 6px;
+  height: 100%;
+  background: #E2E8F0;
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 25;
+  transition: background 0.15s ease;
+}
+
+.app-workspace .workspace-splitter:hover,
+.app-workspace .workspace-splitter.dragging {
+  background: #2F6BFF;
+}
+
+.app-workspace #leftSplitter.collapsed,
+.app-workspace #rightSplitter.collapsed {
+  display: none !important;
+}
+
+/* Center Stage: 3D Simulator (Màn hình chính!) */
+.app-workspace #simPanel.sim-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  width: 0 !important;
+  min-width: 320px !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  position: relative !important;
+  background: #F5F7FA !important;
+  z-index: 5 !important;
+}
+
+/* Right Panel: Inspection Panel (#gearsSidePane) */
+.app-workspace #gearsSidePane.inspection-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 320px;
+  min-width: 260px;
+  max-width: 550px;
+  height: 100%;
+  overflow: hidden;
+  background: #FFFFFF;
+  border-left: 1px solid #D9E1EC;
+  border-right: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+.app-workspace #gearsSidePane.inspection-stage.collapsed {
+  display: none !important;
+}
+
+/* Code Panel Header & Actions — Standardized with Simulator Toolbar & Right Panel */
+.code-panel-header {
+  height: 38px;
+  min-height: 38px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.code-mode-tabs {
+  display: flex;
+  align-items: center;
+  background: #E2E8F0;
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.code-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.code-tab-btn svg {
+  display: block;
+}
+
+.code-tab-btn:hover {
+  color: #0F172A;
+}
+
+.code-tab-btn.active {
+  background: #FFFFFF;
+  color: #2563EB;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.code-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gb-code-save-btn {
+  height: 28px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  border-radius: 6px !important;
+  border: 1px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  color: #334155 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+  transition: all 0.15s ease !important;
+}
+
+.gb-code-save-btn:hover {
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  border-color: #2563EB !important;
+}
+
+.gb-code-ctrl-btn {
+  height: 28px;
+  width: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.15s ease;
+}
+
+.gb-code-ctrl-btn:hover {
+  background: #EFF6FF;
+  color: #2563EB;
+  border-color: #2563EB;
+}
+
+/* Standardized Blockly Toolbox & Category Buttons inside Left Panel */
+#codePanel .blocklyToolboxDiv {
+  background-color: #F8FAFC !important;
+  border-right: 1px solid #E2E8F0 !important;
+  padding: 6px 0 !important;
+  outline: none !important;
+}
+
+#codePanel .blocklyToolboxDiv *:not(input),
+#codePanel .blocklyToolboxDiv *:not(input):focus,
+#codePanel .blocklyToolboxDiv *:not(input):focus-visible,
+#codePanel .blocklyToolboxDiv *:not(input):focus-within,
+#codePanel .blocklyToolboxCategory,
+#codePanel .blocklyToolboxCategory:focus,
+#codePanel .blocklyToolboxCategory:focus-visible,
+#codePanel .blocklyToolboxCategoryContainer,
+#codePanel .blocklyToolboxCategoryContainer:focus,
+#codePanel .blocklyToolboxCategoryContainer:focus-visible,
+#codePanel .blocklyTreeRow,
+#codePanel .blocklyTreeRow:focus,
+#codePanel .blocklyTreeRow:focus-visible,
+#codePanel .blocklyToolboxSelected {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+#codePanel .blocklyToolboxDiv input[type="search"],
+#codePanel .blocklyToolboxDiv input[type="text"],
+#codePanel .blocklyToolboxDiv input {
+  width: calc(100% - 12px) !important;
+  margin: 2px 6px 8px 6px !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 6px !important;
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+
+#codePanel .blocklyToolboxDiv input:focus {
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+#codePanel .blocklyTreeRow {
+  height: 28px !important;
+  line-height: 28px !important;
+  margin: 2px 6px !important;
+  padding: 0 8px !important;
+  border-radius: 6px !important;
+  border-left-width: 5px !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: background-color 0.12s ease !important;
+}
+
+#codePanel .blocklyTreeLabel {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.1px !important;
+}
+
+/* Scratch 3.0 (Zelos Renderer) Block & Flyout Polish */
+.zelos-renderer .blocklyText,
+.zelos-renderer .blocklyFlyoutLabelText {
+  font-family: 'Plus Jakarta Sans', 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.zelos-renderer .blocklyFlyoutBackground {
+  fill: #F1F5F9 !important;
+  fill-opacity: 0.97 !important;
+}
+
+.zelos-renderer .blocklyFlyoutButton .blocklyFlyoutButtonBackground {
+  fill: #2563EB !important;
+  stroke: #1D4ED8 !important;
+  rx: 8px !important;
+  ry: 8px !important;
+}
+
+.zelos-renderer .blocklyFlyoutButton:hover .blocklyFlyoutButtonBackground {
+  fill: #1D4ED8 !important;
+}
+
+.zelos-renderer .blocklyFlyoutButton .blocklyText {
+  fill: #FFFFFF !important;
+}
+
+.zelos-renderer.blocklyDropDownDiv {
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.25) !important;
+}
+
+/* Code Panel Body & Subpanels */
+.code-panel-body {
+  flex-grow: 1;
+  height: calc(100% - 38px);
+  position: relative;
+  overflow: hidden;
+}
+
+.code-subpanel {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  overflow: hidden;
+}
+
+.code-subpanel.active {
+  display: block !important;
+}
+
+.code-subpanel.pythonEditor.active {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 4. Unified Simulator Top Toolbar (#simUnifiedToolbar) — Compact 38px Ribbon */
+#simUnifiedToolbar {
+  height: 38px;
+  min-height: 38px;
+  flex-shrink: 0;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  gap: 8px;
+  z-index: 30;
+  user-select: none;
+  box-sizing: border-box;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#simUnifiedToolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.sim-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sim-toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: #CBD5E1;
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+/* Toolbar Buttons - Standardized 28px Slate/Blue Buttons */
+#simUnifiedToolbar .sim-tool-btn {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: auto !important;
+  min-width: 30px !important;
+  max-width: none !important;
+  height: 28px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  background: #FFFFFF !important;
+  color: #334155 !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+  display: inline-flex;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+}
+
+#simUnifiedToolbar .sim-tool-btn:hover {
+  background: #EFF6FF !important;
+  border-color: #2563EB !important;
+  color: #2563EB !important;
+}
+
+/* Primary Action Button (Play / Stop) in Fresh Emerald (#16A34A) */
+#simUnifiedToolbar .runSim.primary {
+  background: #16A34A !important;
+  border-color: #15803D !important;
+  color: #FFFFFF !important;
+  padding: 0 12px !important;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25) !important;
+}
+
+#simUnifiedToolbar .runSim.primary:hover {
+  background: #15803D !important;
+  border-color: #166534 !important;
+  color: #FFFFFF !important;
+}
+
+#simUnifiedToolbar .sim-action-btn .btn-text {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+  white-space: nowrap !important;
+}
+
+/* 5. Center Mission Status Bar integrated inside #simUnifiedToolbar */
+#gearsMissionTopBar {
+  position: static !important;
+  transform: none !important;
+  background: #F5F7FA;
+  border: solid 1px #D9E1EC;
+  border-radius: 12px;
+  height: 24px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #1F2937;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+#gearsMissionTopBar.hide {
+  display: none !important;
+}
+
+#gearsMissionTopBar .top-timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2F6BFF;
+}
+
+#gearsMissionTopBar .top-score {
+  font-weight: 700;
+  color: #22C55E;
+}
+
+#gearsMissionTopBar .top-beacons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gb-beacon-pill {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: solid 1px #D9E1EC;
+  background: #FFFFFF;
+  color: #6B7280;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.gb-beacon-pill.next {
+  border-color: #2F6BFF;
+  background: #F0F5FF;
+  color: #2F6BFF;
+}
+
+.gb-beacon-pill.cleared {
+  border-color: #22C55E;
+  background: #22C55E;
+  color: #FFFFFF;
+}
+
+/* Right Toolbar Buttons (Perf & Side Pane Toggle) */
+.gb-toolbar-pill-btn {
+  height: 26px;
+  padding: 0 8px;
+  background: #FFFFFF;
+  border: solid 1px #D9E1EC;
+  border-radius: 6px;
+  color: #1F2937;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.15s ease;
+}
+
+.gb-toolbar-pill-btn:hover {
+  border-color: #2F6BFF;
+  color: #2F6BFF;
+  background: #F0F5FF;
+  transform: translateY(-1px);
+}
+
+.gb-toolbar-pill-btn.active {
+  background: #2F6BFF;
+  border-color: #2F6BFF;
+  color: #FFFFFF;
+  box-shadow: 0 2px 5px rgba(47, 107, 255, 0.25);
+}
+
+/* 6. Main Split Workspace (#simWorkspaceRow) */
+#simWorkspaceRow {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  position: relative;
+  background: #EEF2F7;
+}
+
+#simCanvasStage {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #111827;
+}
+
+#simCanvasStage #renderCanvas {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  display: block;
+}
+
+#simCanvasStage .worldInfo {
+  top: 12px !important;
+  right: 12px !important;
+  z-index: 15;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #D9E1EC;
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+/* Console docked cleanly at the bottom of the 3D canvas stage */
+#simCanvasStage .console {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 18;
+  background: rgba(17, 24, 39, 0.88);
+  backdrop-filter: blur(4px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F3F4F6;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+/* 7. Docked Right Side Pane (#gearsSidePane) — Playful Tech / Modern Card Style */
+#gearsSidePane {
+  width: 300px;
+  min-width: 300px;
+  flex-shrink: 0;
+  height: 100%;
+  background: #F5F7FA;
+  border-left: solid 1px #D9E1EC;
+  display: flex;
+  flex-direction: column;
+  color: #1F2937;
+  font-size: 90%;
+  z-index: 20;
+  overflow: hidden;
+}
+
+#gearsSidePane.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  border-left: none !important;
+  display: none !important;
+}
+
+/* Side Pane Header — Standardized 38px Slate Header matching Left Panel & Center Toolbar */
+.gb-pane-header {
+  height: 38px;
+  min-height: 38px;
+  background: #F8FAFC;
+  color: #0F172A;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  letter-spacing: -0.1px;
+}
+
+#wroRoomBadge {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  border: 1px solid #BFDBFE !important;
+  padding: 1px 7px !important;
+  border-radius: 5px !important;
+}
+
+/* Side Pane Tabs Bar (Segmented Modern Sub-navigation) */
+.gb-pane-tabs {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 6px 8px;
+  background: #F1F5F9;
+  border-bottom: 1px solid #E2E8F0;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.gb-pane-tabs li {
+  flex: 1;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 6px;
+  background: transparent;
+  color: #475569;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.gb-pane-tabs li:hover {
+  color: #0F172A;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.gb-pane-tabs li.active {
+  background: #FFFFFF;
+  color: #2563EB;
+  font-weight: 700;
+  border-color: #CBD5E1;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+/* Side Pane Body Content */
+.gb-pane-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.gb-tab-section {
+  display: none;
+  flex-direction: column;
+  gap: 0.45em;
+}
+
+.gb-tab-section.active {
+  display: flex;
+}
+
+/* Section Card (Modern Soft Surface: White #FFFFFF, Radius 8px, Border #D9E1EC) */
+.gb-box {
+  background: #FFFFFF;
+  border: solid 1px #D9E1EC;
+  border-radius: 8px;
+  padding: 0.45em 0.6em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gb-box-title {
+  font-weight: 700;
+  color: #1F2937;
+  border-bottom: solid 1px #F1F5F9;
+  padding-bottom: 0.2em;
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Modern Compact Data Table */
+table.gb-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 11px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+table.gb-data-table td,
+table.gb-data-table th {
+  border: solid 1px #E2E8F0;
+  padding: 0.2em 0.4em;
+}
+
+table.gb-data-table th {
+  background: #F8FAFC;
+  color: #475569;
+  font-weight: 600;
+  text-align: left;
+}
+
+table.gb-data-table td.val {
+  color: #2F6BFF;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: right;
+  font-weight: 700;
+}
+
+/* Native .sensorReadings Table inside Sensors Tab */
+#wroNativeSensorsMount .sensorReadings {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  max-height: none !important;
+  opacity: 1 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+#wroNativeSensorsMount .sensorReadings .sensorReading {
+  background: #F8FAFC;
+  border: solid 1px #E2E8F0;
+  border-radius: 6px;
+  padding: 3px 5px;
+  margin-bottom: 3px;
+}
+
+#wroNativeSensorsMount .sensorReadings .sensorReading .sensorType {
+  font-weight: 700;
+  font-size: 10.5px;
+  color: #1F2937;
+  margin-bottom: 2px;
+  text-align: left;
+}
+
+#wroNativeSensorsMount .sensorReadings .sensorReading table.sensorValues td {
+  border: solid 1px #E2E8F0;
+  padding: 1px 3px;
+  font-size: 10.5px;
+}
+
+#wroNativeSensorsMount .sensorReadings .sensorReading table.sensorValues td.sensorValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #2F6BFF;
+}
+
+/* Form Controls (Inputs, Selects, File Pickers, Checkboxes) */
+.gb-select,
+.gb-input:not([type="file"]) {
+  width: 100%;
+  height: 32px !important;
+  min-height: 32px !important;
+  box-sizing: border-box !important;
+  padding: 0 10px !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 7px !important;
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+
+.gb-input[type="file"] {
+  width: 100%;
+  height: 34px !important;
+  min-height: 34px !important;
+  box-sizing: border-box !important;
+  padding: 3px 6px !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 7px !important;
+  background: #FFFFFF !important;
+  color: #475569 !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button,
+input[type="file"]::-webkit-file-upload-button {
+  height: 26px;
+  padding: 0 10px;
+  margin-right: 8px;
+  border: 1px solid #CBD5E1;
+  border-radius: 5px;
+  background: #F8FAFC;
+  color: #334155;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+input[type="file"]::file-selector-button:hover,
+input[type="file"]::-webkit-file-upload-button:hover {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #2563EB;
+}
+
+.gb-select:focus,
+.gb-input:focus {
+  border-color: #2563EB !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15) !important;
+}
+
+#gearsSidePane input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #2563EB;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.gb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.gb-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Standardized 32px Side Pane Buttons (Never squished vertically inside .gb-box column containers) */
+.gb-btn {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 12px !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 7px !important;
+  background: #FFFFFF !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.15s ease !important;
+}
+
+.gb-btn-row > .gb-btn,
+.gb-row > .gb-btn {
+  flex: 1 1 0%;
+  width: auto;
+}
+
+.gb-btn:hover {
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  border-color: #2563EB !important;
+}
+
+.gb-btn.primary,
+.gb-btn.success {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25) !important;
+}
+
+.gb-btn.primary:hover,
+.gb-btn.success:hover {
+  background: #1D4ED8 !important;
+  border-color: #1E40AF !important;
+  color: #FFFFFF !important;
+}
+
+.gb-desc {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+#wroPidCanvas {
+  width: 100%;
+  height: 76px;
+  background: #F8FAFC;
+  border: solid 1px #E2E8F0;
+  border-radius: 8px;
+  display: block;
+}
+
+/* 8. Modern Friendly Notice Card for Blockly Editor when Python is modified */
+.blocklyEditor .disable {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: rgba(15, 23, 42, 0.35) !important;
+  backdrop-filter: blur(3px) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.gb-disable-card {
+  background: #FFFFFF;
+  border: solid 1px #D9E1EC;
+  border-radius: 14px;
+  padding: 24px 28px;
+  max-width: 440px;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.20);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: fadeInCard 0.2s ease-out;
+}
+
+.gb-disable-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #EEF2F7;
+  color: #2563EB;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid #D9E1EC;
+}
+
+.gb-disable-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.gb-disable-desc {
+  font-size: 13.5px;
+  color: #6B7280;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.gb-disable-card .enable {
+  height: 34px !important;
+  padding: 0 20px !important;
+  border-radius: 7px !important;
+  font-size: 13px !important;
+  color: #FFFFFF !important;
+  background: #2563EB !important;
+  border: 1px solid #1D4ED8 !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25) !important;
+  transition: all 0.15s ease !important;
+}
+
+.gb-disable-card .enable:hover {
+  background: #1D4ED8 !important;
+  border-color: #1E40AF !important;
+}
+
+/* 9. Modern Python Files Row Styling */
+#filesRow {
+  background: #F8FAFC !important;
+  border-top: 1px solid #E2E8F0 !important;
+  padding: 6px 10px !important;
+  gap: 4px !important;
+}
+
+#filesList .file {
+  height: 28px !important;
+  min-height: 28px !important;
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: #334155 !important;
+  padding: 0 10px !important;
+  margin-right: 4px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  transition: all 0.15s ease !important;
+}
+
+#filesList .file:hover {
+  background: #EFF6FF !important;
+  border-color: #2563EB !important;
+  color: #2563EB !important;
+}
+
+#filesList .file.selected {
+  background: #2563EB !important;
+  border-color: #1D4ED8 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25) !important;
+}
+
+#addNewFile {
+  height: 28px !important;
+  width: 28px !important;
+  min-height: 28px !important;
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 6px !important;
+  color: #334155 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+#addNewFile:hover {
+  background: #EFF6FF !important;
+  border-color: #2563EB !important;
+  color: #2563EB !important;
+}

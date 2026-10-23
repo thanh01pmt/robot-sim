@@ -3301,6 +3301,7 @@ let MSGS = {
   },
   '#blockly-enable_blocks#': {
     en: 'Enable Blocks Mode',
+    vi: 'Kích hoạt lại Khối lệnh (Blocks)',
     fr: 'Passer en mode Blocs',
     el: 'Ενεργοποίηση λειτουργίας μπλοκ',
     nl: 'Activeer blokken modus',
@@ -3314,6 +3315,7 @@ let MSGS = {
   },
   '#blockly-python_lost_warning#': {
     en: 'Enabling blocks mode will cause all Python changes to be lost.',
+    vi: 'Kích hoạt lại chế độ Khối lệnh sẽ ghi đè các thay đổi mã nguồn Python.',
     fr: 'Passer en mode Blocs fera perdre toutes les modifications dans le code Python.',
     el: 'Η ενεργοποίηση της λειτουργίας μπλοκ θα προκαλέσει απώλεια όλων των αλλαγών Python',
     nl: 'Alle Python gaat verloren als blokken modus wordt geactiveerd.',
@@ -3368,6 +3370,14 @@ let MSGS = {
 let MSGS_KEYS = Object.keys(MSGS);
 
 let LANG = localStorage.getItem('LANG');
+try {
+  let urlParams = new URLSearchParams(window.location.search);
+  let urlLang = urlParams.get('lang');
+  if (urlLang) {
+    LANG = urlLang;
+    localStorage.setItem('LANG', LANG);
+  }
+} catch (e) {}
 if (!LANG || LANG == '' || LANG == 'undefined') {
   LANG = 'en';
 }
@@ -3381,9 +3391,13 @@ if (RTL_LANGS.indexOf(LANG) != -1) {
 var i18n = new function() {
   var self = this;
 
-  // Append to messages
+  // Append to messages (deep merge per key so existing language translations are preserved)
   this.append = function(msgs) {
-    MSGS = Object.assign(MSGS, msgs);
+    for (let k in msgs) {
+      if (Object.prototype.hasOwnProperty.call(msgs, k)) {
+        MSGS[k] = Object.assign(MSGS[k] || {}, msgs[k]);
+      }
+    }
     MSGS_KEYS = Object.keys(MSGS);
   };
 

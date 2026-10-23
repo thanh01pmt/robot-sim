@@ -10,8 +10,13 @@
   <link rel="icon" href="favicon-167.png" sizes="167x167">
   <link rel="icon" href="favicon-192.png" sizes="192x192">
 
-  <link rel="stylesheet" href="css/main.css?v=9584d2b6">
-  <link rel="stylesheet" href="css/widgets.css?v=7d85fcde">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/main.css?v=20261022e">
+  <link rel="stylesheet" href="css/widgets.css?v=20261022e">
+  <link rel="stylesheet" href="css/wroSuite.css?v=20261022e">
 
   <script src="jquery/jquery-3.5.1.slim.min.js"></script>
 
@@ -30,42 +35,44 @@
   <script src="jszip/3.5.0/jszip.min.js"></script>
 
   <script src="js/msg.js?v=b817bde7"></script>
-  <script src="js/common/widgets.js?v=8de59276"></script>
+  <script src="js/common/widgets.js?v=20261022c"></script>
 
-  <title>GearsBot</title>
+  <meta name="description" content="Generic Educational Autonomous Robotics Simulator for experimenting with 3D robotics, Blockly visual programming, and Python (Ev3dev & Pybricks) in the browser.">
+  <meta property="og:title" content="GearsBot Robotics Simulator">
+  <meta property="og:description" content="Generic Educational Autonomous Robotics Simulator for experimenting with 3D robotics, Blockly visual programming, and Python (Ev3dev & Pybricks) in the browser.">
+  <title>GearsBot Robotics Simulator</title>
 </head>
 
 <body>
-  <header>
-    <img class="gearsIcon" src="favicon-32.png">
-    <div>GearsBot</div>
-    <input type="text" id="projectName" placeholder="Project Name">
-    <div class="language"><span class="icon-globe"></span> &#x25BE;</div>
-  </header>
+  <header class="app-header">
+    <div class="header-left">
+      <div class="gears-brand">
+        <img class="gearsIcon" src="favicon-32.png" alt="GearsBot">
+        <div class="brand-title">GearsBot</div>
+      </div>
 
-  <main>
-    <nav>
-      <ul class="panelTabs">
-        <li id="navBlocks" class="active">Blocks</li>
-        <li id="navPython" class="pythonMain">
-          <span>
-            Python
-          </span>
-        </li>
-        <li id="navSim">Simulator</li>
-      </ul>
-      <div class="menuBar">
-        <div class="menuItem fileMenu">File</div>
-        <div class="menuItem pythonMenu">Python</div>
-        <div class="menuItem robotMenu">Robot</div>
-        <div class="menuItem worldsMenu">Worlds</div>
-        <div class="menuItem helpMenu">Help</div>
-      </div>
-      <!-- <div class="news">
-        News!
-      </div> -->
-      </div>
-      <div class="panelControlsArea">
+      <div class="header-vsep"></div>
+
+      <nav>
+        <!-- Hidden proxy tabs to preserve compatibility with internal main.$navs calls -->
+        <ul class="panelTabs" style="display:none;">
+          <li id="navBlocks">Blocks</li>
+          <li id="navPython">Python</li>
+          <li id="navSim" class="active">Simulator</li>
+        </ul>
+
+        <div class="menuBar">
+          <div class="menuItem fileMenu">File</div>
+          <div class="menuItem pythonMenu">Python</div>
+          <div class="menuItem robotMenu">Robot</div>
+          <div class="menuItem worldsMenu">Worlds</div>
+          <div class="menuItem helpMenu">Help</div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <div class="panelControlsArea" style="display:none;">
         <div class="panelControls active" aria-labelledby="navBlocks">
           <div class="saveBlockly hide">Save Now</div>
         </div>
@@ -73,110 +80,161 @@
           <div class="savePython hide">Save Now</div>
         </div>
       </div>
-    </nav>
-    <div class="panels">
-
-      <div class="blocklyEditor panel active" aria-labelledby="navBlocks">
-        <div id="blocklyDiv" style="height: 100%; width: 100%;"></div>
-        <div id="blocklyHiddenDiv" style="height: 100%; width: 100%; position: absolute; top: -10000px;"></div>
-        <div id="blocklyPages"><span class="currentPage">Main</span></div>
-      </div>
-
-      <div class="panel" aria-labelledby="navPython">
-        <div class="python">
-          <div id="pythonCode"></div>
-          <div id="filesRow">
-            <div id="filesList"></div>
-            <div id="addNewFile"><span class="icon-plus"></span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel" aria-labelledby="navSim" id="simPanel">
-        <canvas id="renderCanvas" touch-action="none"></canvas>
-        <div class="runSim"><span class="icon-play"></span></div>
-        <div class="world"><span class="icon-globe"></span></div>
-        <div class="reset"><span class="icon-reset"></span></div>
-        <div class="sensors"><span class="icon-sensors"></span></div>
-        <div class="sensorReadings hide"></div>
-        <div class="cameraSelector closed">
-          <div class="camera">
-            <span class="icon-cameraFollow"></span>
-          </div>
-          <div class="cameraOptions cameraFollow">
-            <span class="icon-cameraFollow"></span>
-          </div>
-          <div class="cameraOptions cameraTop">
-            <span class="icon-cameraTop"></span>
-          </div>
-          <div class="cameraOptions cameraArc">
-            <span class="icon-cameraArc"></span>
-          </div>
-          <div class="cameraOptions resetCamera">
-            <span class="icon-reset"></span>
-          </div>
-        </div>
-
-        <div class="worldInfo hide"></div>
-        <div class="ruler closed">
-          <div class="icon">
-            <span class="icon-ruler"></span>
-          </div>
-          <div class="measurements">
-            <table>
-              <tr>
-                <td class="x">X:</td>
-                <td class="y">Y:</td>
-                <td class="alt">Alt:</td>
-              </tr>
-              <tr>
-                <td class="dist" colspan="2">Distance:</td>
-                <td class="angle">Angle:</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="joystick closed" tabindex=0>
-          <div class="icon">
-            <span class="icon-joystick"></span>
-          </div>
-          <div class="keyboard">
-            <span class="icon-keyboard"></span>
-          </div>
-          <div class="virtualJoystick">
-            <span class="icon-virtualJoystickIndicator"></span>
-            <span class="icon-virtualJoystick"></span>
-          </div>
-        </div>
-        <div class="hubButtons closed">
-          <div class="icon">
-            <span class="icon-buttons"></span>
-          </div>
-          <div class="controls">
-            <span class="icon-buttonsBackspace"></span>
-            <span class="icon-buttonsUp"></span>
-            <span class="icon-buttonsDown"></span>
-            <span class="icon-buttonsLeft"></span>
-            <span class="icon-buttonsRight"></span>
-            <span class="icon-buttonsEnter"></span>
-          </div>
-        </div>
-
-        <div class="fps"></div>
-
-        <div id="plotter" class="hide">
-          <canvas id="plotterCanvas" width="300" height="300"></canvas>
-          <div class="close">X</div>
-          <div class="position"></div>
-        </div>
-
-        <div class="console">
-          <div class="chevron"></div>
-          <div title="Clear Console"  class="clear">&#x239a;</div>
-          <pre class="content"></pre>
-        </div>
-      </div>
+      <input type="text" id="projectName" placeholder="Project Name">
+      <div class="language"><span class="icon-globe"></span> &#x25BE;</div>
     </div>
+  </header>
+
+  <main class="app-workspace">
+    <!-- 1. LEFT PANEL: CODING PANEL (Blocks / Python) -->
+    <aside id="codePanel" class="code-stage gb-panel-stage">
+      <div class="code-panel-header">
+        <div class="code-mode-tabs">
+          <button type="button" class="code-tab-btn active" id="tabBlocksBtn" title="Chế độ Khối lệnh (Blocks)">
+            <svg class="gb-tab-svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M5.5 1a1.5 1.5 0 0 0-1.5 1.5V3H2.5A1.5 1.5 0 0 0 1 4.5v3a1.5 1.5 0 0 0 1 1.41V9a2 2 0 1 1 0 4v.5A1.5 1.5 0 0 0 2.5 15h3a1.5 1.5 0 0 0 1.41-1H7a2 2 0 1 1 4 0h.5a1.5 1.5 0 0 0 1.5-1.5v-3a1.5 1.5 0 0 0-1-1.41V9a2 2 0 1 1 0-4v-.5A1.5 1.5 0 0 0 10.5 3h-3a1.5 1.5 0 0 0-1.41 1H6a2 2 0 1 1-4 0v-.5A1.5 1.5 0 0 0 3.5 1h2z"/>
+            </svg>
+            <span class="tab-label">Blocks</span>
+          </button>
+          <button type="button" class="code-tab-btn" id="tabPythonBtn" title="Chế độ Mã Python">
+            <svg class="gb-tab-svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M7.9 1c-3.6 0-3.4 1.6-3.4 1.6l.04 1.6h3.4v.5H3.1s-2.1.2-2.1 3.5c0 3.2 1.8 3.3 1.8 3.3h1.1v-1.6s-.1-1.8 1.8-1.8h3.4s1.7 0 1.7-1.7V2.7S11.2 1 7.9 1zm-1 1a.6.6 0 1 1 0 1.2.6.6 0 0 1 0-1.2zm1.2 13c3.6 0 3.4-1.6 3.4-1.6l-.04-1.6H8.06v-.5h4.84s2.1-.2 2.1-3.5c0-3.2-1.8-3.3-1.8-3.3h-1.1v1.6s.1 1.8-1.8 1.8H6.86s-1.7 0-1.7 1.7v3.2s-.4 1.7 2.9 1.7zm1-1a.6.6 0 1 1 0-1.2.6.6 0 0 1 0 1.2z"/>
+            </svg>
+            <span class="tab-label">Python</span>
+          </button>
+        </div>
+
+        <div class="code-header-actions">
+          <button type="button" class="saveBlockly hide gb-code-save-btn">Lưu khối</button>
+          <button type="button" class="savePython hide gb-code-save-btn">Lưu Python</button>
+          <button type="button" class="gb-code-ctrl-btn" id="btnCollapseCode" title="Thu gọn bảng lập trình">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="10 3 5 8 10 13"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="code-panel-body">
+        <!-- Visual Blocks Editor -->
+        <div class="blocklyEditor code-subpanel active" id="blocklySubpanel">
+          <div id="blocklyDiv" style="height: 100%; width: 100%;"></div>
+          <div id="blocklyHiddenDiv" style="height: 100%; width: 100%; position: absolute; top: -10000px;"></div>
+          <div id="blocklyPages"><span class="currentPage">Main</span></div>
+        </div>
+
+        <!-- Python Code Editor -->
+        <div class="pythonEditor code-subpanel" id="pythonSubpanel">
+          <div class="python">
+            <div id="pythonCode"></div>
+            <div id="filesRow">
+              <div id="filesList"></div>
+              <div id="addNewFile"><span class="icon-plus"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. LEFT SPLITTER (Draggable between Coding Panel and Simulator) -->
+    <div id="leftSplitter" class="workspace-splitter" title="Kéo để điều chỉnh độ rộng Bảng lập trình (Drag to resize)"></div>
+
+    <!-- 3. MAIN CENTER STAGE: 3D SIMULATOR -->
+    <div id="simPanel" class="sim-stage panel active" aria-labelledby="navSim">
+      <div id="simUnifiedToolbar">
+        <div class="sim-toolbar-group sim-toolbar-left">
+          <!-- Button to toggle Left Coding Panel (Only visible when Code Sidebar is collapsed) -->
+          <button type="button" class="sim-tool-btn sim-action-btn" id="btnToggleLeftCode" style="display:none;" title="Mở Bảng lập trình (Blocks & Python)">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="5 4 1 8 5 12"/><polyline points="11 4 15 8 11 12"/></svg>
+            <span class="btn-text">Code</span>
+          </button>
+          <span class="sim-toolbar-sep sim-toolbar-sep-code" style="display:none;"></span>
+
+          <div class="runSim sim-tool-btn sim-action-btn primary" title="Chạy / Dừng mô phỏng (F5)">
+            <span class="icon-play"></span>
+            <span class="btn-text">Chạy</span>
+          </div>
+          <div class="reset sim-tool-btn sim-action-btn" title="Đặt lại vị trí Robot">
+            <span class="icon-reset"></span>
+            <span class="btn-text">Đặt lại</span>
+          </div>
+          <div class="world sim-tool-btn sim-action-btn" title="Chọn sa bàn thi đấu">
+            <span class="icon-globe"></span>
+            <span class="btn-text">Sa bàn</span>
+          </div>
+          <div class="sim-tool-btn sim-action-btn" id="btnTakeScreenshot" title="Chụp ảnh sa bàn 3D (Screenshot)">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="3" width="14" height="11" rx="2"/><circle cx="8" cy="8.5" r="3"/><path d="M5 3l1.5-2h3L11 3"/></svg>
+            <span class="btn-text">Chụp ảnh</span>
+          </div>
+        </div>
+
+        <div id="gearsMissionTopBar" class="sim-toolbar-center"></div>
+
+        <div class="sim-toolbar-group sim-toolbar-right" id="simToolbarRight"></div>
+      </div>
+
+      <div id="simWorkspaceRow">
+        <div id="simCanvasStage">
+          <canvas id="renderCanvas" touch-action="none"></canvas>
+
+          <div class="cameraSelector closed">
+            <div class="camera">
+              <span class="icon-cameraFollow"></span>
+            </div>
+            <div class="cameraOptions cameraFollow">
+              <span class="icon-cameraFollow"></span>
+            </div>
+            <div class="cameraOptions cameraTop">
+              <span class="icon-cameraTop"></span>
+            </div>
+            <div class="cameraOptions cameraArc">
+              <span class="icon-cameraArc"></span>
+            </div>
+            <div class="cameraOptions resetCamera">
+              <span class="icon-reset"></span>
+            </div>
+          </div>
+
+          <div class="ruler closed">
+            <div class="icon">
+              <span class="icon-ruler"></span>
+            </div>
+            <div class="measurements">
+              <table>
+                <tr>
+                  <td class="x">X:</td>
+                  <td class="y">Y:</td>
+                  <td class="alt">Alt:</td>
+                </tr>
+                <tr>
+                  <td class="dist" colspan="2">Distance:</td>
+                  <td class="angle">Angle:</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="worldInfo hide"></div>
+          <div class="fps"></div>
+          <div id="plotter" class="hide">
+            <canvas id="plotterCanvas" width="300" height="300"></canvas>
+            <div class="close">X</div>
+            <div class="position"></div>
+          </div>
+          <div class="console">
+            <div class="chevron"></div>
+            <div title="Clear Console" class="clear">&times;</div>
+            <pre class="content"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="sensorReadings hide"></div>
+    </div>
+
+    <!-- 4. RIGHT SPLITTER (Draggable between Simulator and Inspection Panel) -->
+    <div id="rightSplitter" class="workspace-splitter" title="Kéo để điều chỉnh độ rộng Bảng điều khiển (Drag to resize)"></div>
+
+    <!-- 5. RIGHT PANEL: INSPECTION PANEL (Control Center / Telemetry / WRO-FLL / Robot) -->
+    <aside id="gearsSidePane" class="inspection-stage gb-panel-stage"></aside>
   </main>
 
   <!-- <script src="blockly-12.3.0/blockly_compressed.js"></script>
@@ -193,7 +251,7 @@
 
   <script src="js/ev3dev2_generator.js?v=2adb0f52"></script>
   <script src="js/pybricks_generator.js?v=ce20f4ee"></script>
-  <script src="js/blockly.js?v=eb6bb4b1"></script>
+  <script src="js/blockly.js?v=20261022e"></script>
   <script src="js/skulpt.js?v=ccea6daa"></script>
   <script src="js/worlds/World_Base.js?v=9f07f537"></script>
   <script src="js/worlds/world_Grid.js?v=3ed03b45"></script>
@@ -215,18 +273,18 @@
     var robots = [];
 
     var robot = new Robot();
-    robot.options = {};
-    Object.assign(robot.options, robotTemplates[0]);
+    robot.options = JSON.parse(JSON.stringify(robotTemplates[0]));
     robot.player = 'single';
     robots.push(robot);
   </script>
-  <script src="js/babylon.js?v=6061094f"></script>
-  <script src="js/blocklyPanel.js?v=8ee6b939"></script>
+  <script src="js/babylon.js?v=20261022c"></script>
+  <script src="js/blocklyPanel.js?v=20261022c"></script>
   <script src="js/gearsbot_completer.js"></script>
-  <script src="js/pythonPanel.js?v=3e0c224d"></script>
-  <script src="js/filesManager.js?v=c95715e3"></script>
-  <script src="js/simPanel.js?v=159f4157"></script>
-  <script src="js/main.js?v=104a42b5"></script>
+  <script src="js/pythonPanel.js?v=20261022c"></script>
+  <script src="js/filesManager.js?v=20261022c"></script>
+  <script src="js/simPanel.js?v=20261022c"></script>
+  <script src="js/main.js?v=20261022c"></script>
+  <script src="js/wroSuite.js?v=20261022c"></script>
 
   <script>
     // Init classes
@@ -290,6 +348,9 @@
         loadWorldFromGET();
         loadRobotFromGET();
         loadFilterFromGET();
+        if (typeof simPanel !== 'undefined' && typeof simPanel.onActive === 'function') {
+          simPanel.onActive();
+        }
       } else {
         setTimeout(loadWhenReady, 100);
       }

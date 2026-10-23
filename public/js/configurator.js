@@ -695,6 +695,111 @@ var configurator = new function() {
       ]
     },
     {
+      name: 'ClawActuator',
+      category: 'Actuators',
+      defaultConfig: {
+        type: 'ClawActuator',
+        position: [0, 2.2, 8.8],
+        rotation: [0, 0, 0],
+        options: {
+          jawLength: 4.5,
+          maxSpread: 6.5,
+          minSpread: 0.8,
+          baseColor: 'F59E0B',
+          jawColor: '1E293B'
+        }
+      },
+      optionsConfigurations: [
+        {
+          option: 'position',
+          type: 'vectors',
+          min: '-20',
+          max: '20',
+          step: '0.5',
+          reset: true
+        },
+        {
+          option: 'rotation',
+          type: 'vectors',
+          min: '-180',
+          max: '180',
+          step: '5',
+          deg2rad: true,
+          reset: true
+        },
+        {
+          option: 'jawLength',
+          type: 'floatText',
+          help: 'Length of parallel gripper jaws in cm'
+        },
+        {
+          option: 'maxSpread',
+          type: 'floatText',
+          help: 'Maximum opening width in cm'
+        },
+        {
+          option: 'baseColor',
+          type: 'color',
+          reset: true
+        },
+        {
+          option: 'jawColor',
+          type: 'color',
+          reset: true
+        }
+      ]
+    },
+    {
+      name: 'CustomModel',
+      category: 'Blocks',
+      defaultConfig: {
+        type: 'CustomModel',
+        position: [0, 5, 0],
+        rotation: [0, 0, 0],
+        options: {
+          modelURL: '',
+          scale: 1.0,
+          mass: 100,
+          color: '38BDF8'
+        }
+      },
+      optionsConfigurations: [
+        {
+          option: 'position',
+          type: 'vectors',
+          min: '-20',
+          max: '20',
+          step: '0.5',
+          reset: true
+        },
+        {
+          option: 'rotation',
+          type: 'vectors',
+          min: '-180',
+          max: '180',
+          step: '5',
+          deg2rad: true,
+          reset: true
+        },
+        {
+          option: 'modelURL',
+          type: 'strText',
+          reset: true,
+          help: 'URL or DataURL of .glb / .gltf 3D model'
+        },
+        {
+          option: 'scale',
+          type: 'floatText',
+          reset: true
+        },
+        {
+          option: 'color',
+          type: 'color',
+          reset: true
+        }
+      ]
+    },
+    {
       name: 'ArmActuator',
       category: 'Actuators',
       defaultConfig: {

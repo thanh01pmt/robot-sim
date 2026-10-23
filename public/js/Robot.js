@@ -122,7 +122,9 @@ function Robot() {
         }
       }
       bodyMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-      bodyMat.freeze();
+      if (typeof bodyMat.freeze === 'function') {
+        bodyMat.freeze();
+      }
 
       let bodyOptions = {
         height: options.bodyHeight,
@@ -137,7 +139,9 @@ function Robot() {
       body.position.x = 0;
       body.position.y = (options.bodyHeight / 2) + (options.wheelDiameter / 2) - options.bodyEdgeToWheelCenterY;
       body.position.z = 0;
-      scene.shadowGenerator.addShadowCaster(body);
+      if (scene.shadowGenerator && typeof scene.shadowGenerator.addShadowCaster === 'function') {
+        scene.shadowGenerator.addShadowCaster(body);
+      }
       body.position.addInPlace(startPos);
       body.rotate(BABYLON.Axis.Y, startRot.y, BABYLON.Space.LOCAL);
       body.rotate(BABYLON.Axis.X, startRot.x, BABYLON.Space.LOCAL);
@@ -172,7 +176,9 @@ function Robot() {
           caster.position.z += options.casterOffsetZ;
         }
 
-        scene.shadowGenerator.addShadowCaster(caster);
+        if (scene.shadowGenerator && typeof scene.shadowGenerator.addShadowCaster === 'function') {
+          scene.shadowGenerator.addShadowCaster(caster);
+        }
         caster.parent = body;
 
         caster.physicsImpostor = new BABYLON.PhysicsImpostor(
@@ -498,6 +504,21 @@ function Robot() {
           componentConfig.position,
           componentConfig.rotation,
           'in' + (++self.sensorCount),
+          componentConfig.options);
+      } else if (componentConfig.type == 'ClawActuator') {
+        component = new ClawActuator(
+          self.scene,
+          parent,
+          componentConfig.position,
+          componentConfig.rotation || [0, 0, 0],
+          'out' + PORT_LETTERS[(++self.motorCount)],
+          componentConfig.options);
+      } else if (componentConfig.type == 'CustomModel') {
+        component = new CustomModel(
+          self.scene,
+          parent,
+          componentConfig.position,
+          componentConfig.rotation || [0, 0, 0],
           componentConfig.options);
       } else {
         console.log('Unrecognized component type: ' + componentConfig.type);

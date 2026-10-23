@@ -31,20 +31,32 @@ var main = new function() {
     window.addEventListener('beforeunload', self.checkUnsaved);
     blocklyPanel.onActive();
     self.loadProjectName();
-
-    self.showWhatsNew();
   };
 
   // Update text already in html
   this.updateTextLanguage = function() {
+    let isVi = typeof LANG !== 'undefined' && LANG === 'vi';
     $('#navBlocks').text(i18n.get('#main-blocks#'));
     $('#navSim').text(i18n.get('#main-sim#'));
     self.$fileMenu.text(i18n.get('#main-file#'));
     self.$robotMenu.text(i18n.get('#main-robot#'));
     self.$worldsMenu.text(i18n.get('#main-worlds#'));
     self.$helpMenu.text(i18n.get('#main-help#'));
-    $('#blocklyPages').text(i18n.get('#main-main#'));
+    let $curPage = $('#blocklyPages .currentPage');
+    if ($curPage.length) {
+      $curPage.text(i18n.get('#main-main#'));
+    } else {
+      $('#blocklyPages').html('<span class="currentPage">' + i18n.get('#main-main#') + '</span>');
+    }
 
+    $('#tabBlocksBtn .tab-label').text(isVi ? 'Khối lệnh' : 'Blocks');
+    $('#tabPythonBtn .tab-label').text(isVi ? 'Python' : 'Python');
+
+    $('.runSim .btn-text').text(isVi ? 'Chạy' : 'Run');
+    $('.reset .btn-text').text(isVi ? 'Đặt lại' : 'Reset');
+    $('.world .btn-text').text(isVi ? 'Sa bàn' : 'World');
+    $('#btnTakeScreenshot .btn-text').text(isVi ? 'Chụp ảnh' : 'Screenshot');
+    $('#btnToggleLeftCode .btn-text').text(isVi ? 'Code' : 'Code');
   };
 
   // Toggle language menu
@@ -59,9 +71,10 @@ var main = new function() {
       }
 
       let menuItems = [
+        {html: 'Tiếng Việt', line: false, callback: function() { setLang('vi'); }},
+        {html: 'English', line: true, callback: function() { setLang('en'); }},
         {html: 'Deutsch', line: false, callback: function() { setLang('de'); }},
         {html: 'Ελληνικά', line: false, callback: function() { setLang('el'); }},
-        {html: 'English', line: false, callback: function() { setLang('en'); }},
         {html: 'Español', line: false, callback: function() { setLang('es'); }},
         {html: 'Français', line: false, callback: function() { setLang('fr'); }},
         {html: '한국어', line: false, callback: function() { setLang('ko'); }},

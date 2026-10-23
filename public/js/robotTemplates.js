@@ -1630,5 +1630,298 @@ var robotTemplates = [
       }
     ],
     "options": {}
+  },
+  {
+    "name": "spikePrimeWRO",
+    "shortDescription": "LEGO Spike Prime — WRO Competition Pro (Claw + Magnet + Dual PID)",
+    "longDescription": "<p>Mô phỏng sát thực tế bộ <strong>LEGO Education SPIKE Prime (45678)</strong> chuẩn thi đấu WRO / FLL. Trang bị 2 Cảm biến màu (Dual Color Sensors) để dò line PID tốc độ cao, Cảm biến khoảng cách Siêu âm, Gyro, GPS, <strong>Tay gắp cơ giới (outC)</strong> và <strong>Nam châm điện từ (outD)</strong>.</p>",
+    "longerDescription": "<h3>Kích thước & Vật lý chuẩn Spike Prime</h3><ul><li>Đường kính bánh: 5.6 cm (Bánh Spike Prime Medium)</li><li>Khoảng cách hai bánh: 11.2 cm</li><li>Trọng tâm hạ thấp, chống lật khi phanh gấp</li></ul><h3>Cổng Động cơ (Actuators)</h3><ul><li><strong>outA</strong> : Bánh trái (Left Drive Motor)</li><li><strong>outB</strong> : Bánh phải (Right Drive Motor)</li><li><strong>outC</strong> : Tay gắp song song (Parallel Claw Gripper)</li><li><strong>outD</strong> : Nam châm điện từ (Electromagnet)</li></ul><h3>Cổng Cảm biến (Sensors)</h3><ul><li><strong>in1</strong> : Cảm biến màu Trái (Left Color Sensor)</li><li><strong>in2</strong> : Cảm biến màu Phải (Right Color Sensor)</li><li><strong>in3</strong> : Cảm biến Siêu âm (Ultrasonic Distance)</li><li><strong>in4</strong> : Cảm biến góc Gyro (Gyroscope)</li><li><strong>in5</strong> : Cảm biến tọa độ GPS</li></ul>",
+    "thumbnail": "images/robots/default_thumbnail.png",
+    "bodyHeight": 4.2,
+    "bodyWidth": 10.4,
+    "bodyLength": 14.5,
+    "wheelDiameter": 5.6,
+    "wheelWidth": 1.4,
+    "wheelToBodyOffset": 0.2,
+    "bodyEdgeToWheelCenterY": 1.2,
+    "bodyEdgeToWheelCenterZ": 3.8,
+    "bodyMass": 1150,
+    "wheels": true,
+    "caster": true,
+    "wheelMass": 240,
+    "casterMass": 180,
+    "wheelFriction": 12,
+    "casterFriction": 0.02,
+    "bodyFriction": 0.1,
+    "color": "#F59E0B",
+    "imageType": "all",
+    "imageURL": "",
+    "components": [
+      {
+        "type": "Box",
+        "position": [0, 2.3, -0.5],
+        "rotation": [0, 0, 0],
+        "options": {
+          "height": 0.8,
+          "width": 9.2,
+          "depth": 11.5,
+          "color": "#06B6D4"
+        }
+      },
+      {
+        "type": "Box",
+        "position": [-5.4, -0.4, 0],
+        "rotation": [0, 0, 0],
+        "options": {
+          "height": 2.4,
+          "width": 0.5,
+          "depth": 13.8,
+          "color": "#EC4899"
+        }
+      },
+      {
+        "type": "Box",
+        "position": [5.4, -0.4, 0],
+        "rotation": [0, 0, 0],
+        "options": {
+          "height": 2.4,
+          "width": 0.5,
+          "depth": 13.8,
+          "color": "#EC4899"
+        }
+      },
+      {
+        "type": "ColorSensor",
+        "position": [-2.2, -0.8, 7.6],
+        "rotation": [1.5707963267948966, 0, 0],
+        "options": { "sensorResolution": 8 }
+      },
+      {
+        "type": "ColorSensor",
+        "position": [2.2, -0.8, 7.6],
+        "rotation": [1.5707963267948966, 0, 0],
+        "options": { "sensorResolution": 8 }
+      },
+      {
+        "type": "UltrasonicSensor",
+        "position": [0, 1.8, 7.2],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "GyroSensor",
+        "position": [0, 2.5, 0],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "GPSSensor",
+        "position": [0, 2.5, -2.5],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "ClawActuator",
+        "position": [0, -0.6, 8.2],
+        "rotation": [0, 0, 0],
+        "options": {
+          "jawLength": 6.8,
+          "jawSpread": 5.2,
+          "baseColor": "06B6D4",
+          "jawColor": "F59E0B",
+          "gripRange": 6.5
+        }
+      },
+      {
+        "type": "MagnetActuator",
+        "position": [0, -0.5, 9.2],
+        "rotation": [0, 0, 0],
+        "options": {
+          "maxRange": 12,
+          "maxPower": 6500
+        }
+      }
+    ],
+    "options": {}
+  },
+  {
+    "name": "mindstormsEV3Pro",
+    "shortDescription": "LEGO Mindstorms EV3 — FLL Mission Master (Arm + Magnet + Laser)",
+    "longDescription": "<p>Mô phỏng bộ <strong>LEGO Mindstorms EV3 (31313 / 45544)</strong> cấu hình thi đấu FLL nâng cao. Tích hợp 2 Cảm biến màu, Cảm biến Laser tầm xa, Gyro, GPS, <strong>Tay nâng cơ giới (outC)</strong> gắn kèm <strong>Nam châm điện từ (outD)</strong> và <strong>Tay gắp (outE)</strong>.</p>",
+    "longerDescription": "<h3>Cấu hình LEGO Mindstorms EV3 FLL</h3><ul><li>Đường kính bánh: 6.24 cm (Bánh EV3 Competition)</li><li>Khung gầm nặng đầm chắc (1350g) tối ưu đẩy/kéo mô hình FLL</li></ul><h3>Cổng Động cơ</h3><ul><li><strong>outA / outB</strong> : Động cơ Large Motor Trái / Phải</li><li><strong>outC</strong> : Tay gắp cơ giới (Claw Gripper)</li><li><strong>outD</strong> : Nam châm điện từ hút vật phẩm (Electromagnet)</li><li><strong>outE</strong> : Cánh tay nâng hạ (Motorized Arm)</li></ul><h3>Cổng Cảm biến</h3><ul><li><strong>in1 / in2</strong> : Cảm biến màu Trái / Phải</li><li><strong>in3</strong> : Cảm biến Laser Range (Đo khoảng cách chính xác)</li><li><strong>in4</strong> : Cảm biến Gyroscope</li><li><strong>in5</strong> : Cảm biến GPS</li></ul>",
+    "thumbnail": "images/robots/default_thumbnail.png",
+    "bodyHeight": 4.8,
+    "bodyWidth": 11.2,
+    "bodyLength": 15.6,
+    "wheelDiameter": 6.24,
+    "wheelWidth": 1.8,
+    "wheelToBodyOffset": 0.25,
+    "bodyEdgeToWheelCenterY": 1.5,
+    "bodyEdgeToWheelCenterZ": 4.2,
+    "bodyMass": 1350,
+    "wheels": true,
+    "caster": true,
+    "wheelMass": 280,
+    "casterMass": 220,
+    "wheelFriction": 14,
+    "casterFriction": 0.02,
+    "bodyFriction": 0.1,
+    "color": "#E2E8F0",
+    "imageType": "all",
+    "imageURL": "",
+    "components": [
+      {
+        "type": "Box",
+        "position": [0, 2.6, -0.5],
+        "rotation": [0, 0, 0],
+        "options": {
+          "height": 0.9,
+          "width": 9.8,
+          "depth": 12.2,
+          "color": "#EF4444"
+        }
+      },
+      {
+        "type": "ColorSensor",
+        "position": [-2.4, -0.9, 8.2],
+        "rotation": [1.5707963267948966, 0, 0],
+        "options": { "sensorResolution": 8 }
+      },
+      {
+        "type": "ColorSensor",
+        "position": [2.4, -0.9, 8.2],
+        "rotation": [1.5707963267948966, 0, 0],
+        "options": { "sensorResolution": 8 }
+      },
+      {
+        "type": "LaserRangeSensor",
+        "position": [0, 1.8, 7.8],
+        "rotation": [-1.5707963267948966, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "GyroSensor",
+        "position": [0, 2.6, 0],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "GPSSensor",
+        "position": [0, 2.6, -3],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "ClawActuator",
+        "position": [0, -0.7, 8.8],
+        "rotation": [0, 0, 0],
+        "options": {
+          "jawLength": 7.0,
+          "jawSpread": 5.4,
+          "baseColor": "334155",
+          "jawColor": "EF4444",
+          "gripRange": 6.8
+        }
+      },
+      {
+        "type": "MagnetActuator",
+        "position": [0, -0.6, 9.8],
+        "rotation": [0, 0, 0],
+        "options": {
+          "maxRange": 12,
+          "maxPower": 7000
+        }
+      },
+      {
+        "type": "ArmActuator",
+        "position": [0, 1.2, 5.5],
+        "rotation": [0, 0, 0],
+        "options": {
+          "armLength": 12,
+          "startAngle": 10,
+          "baseColor": "475569",
+          "armColor": "EF4444"
+        }
+      }
+    ],
+    "options": {}
+  },
+  {
+    "name": "spikePrimeRelay",
+    "shortDescription": "LEGO Spike Prime — High-Speed PID & Relay Sprinter",
+    "longDescription": "<p>Khung gầm <strong>Spike Prime</strong> siêu nhẹ chuyên dụng cho <strong>Đua tốc độ PID (WRO Line Master)</strong> và <strong>Đua tiếp sức đồng đội (Multiplayer Team Relay)</strong>.</p>",
+    "longerDescription": "<h3>Cấu hình Tối ưu Tốc độ</h3><ul><li>Khung nhẹ 950g, gia tốc cao, tích hợp sẵn 2 Cảm biến màu, Siêu âm, Gyro, GPS, Tay gắp (outC) và Nam châm (outD).</li></ul>",
+    "thumbnail": "images/robots/default_thumbnail.png",
+    "bodyHeight": 3.8,
+    "bodyWidth": 9.8,
+    "bodyLength": 13.5,
+    "wheelDiameter": 6.0,
+    "wheelWidth": 1.2,
+    "wheelToBodyOffset": 0.2,
+    "bodyEdgeToWheelCenterY": 1.0,
+    "bodyEdgeToWheelCenterZ": 3.5,
+    "bodyMass": 950,
+    "wheelMass": 220,
+    "casterMass": 150,
+    "wheelFriction": 14,
+    "casterFriction": 0.01,
+    "bodyFriction": 0.08,
+    "color": "#06B6D4",
+    "imageType": "all",
+    "imageURL": "",
+    "components": [
+      {
+        "type": "ColorSensor",
+        "position": [-2.0, -0.7, 7.2],
+        "rotation": [1.5707963267948966, 0, 0],
+        "options": { "sensorResolution": 8 }
+      },
+      {
+        "type": "ColorSensor",
+        "position": [2.0, -0.7, 7.2],
+        "rotation": [1.5707963267948966, 0, 0],
+        "options": { "sensorResolution": 8 }
+      },
+      {
+        "type": "UltrasonicSensor",
+        "position": [0, 1.5, 6.8],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "GyroSensor",
+        "position": [0, 2.2, 0],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "GPSSensor",
+        "position": [0, 2.2, -2],
+        "rotation": [0, 0, 0],
+        "options": {}
+      },
+      {
+        "type": "ClawActuator",
+        "position": [0, -0.5, 7.8],
+        "rotation": [0, 0, 0],
+        "options": {
+          "jawLength": 6.2,
+          "jawSpread": 4.8,
+          "baseColor": "0F172A",
+          "jawColor": "10B981",
+          "gripRange": 6.2
+        }
+      },
+      {
+        "type": "MagnetActuator",
+        "position": [0, -0.4, 8.6],
+        "rotation": [0, 0, 0],
+        "options": {
+          "maxRange": 11,
+          "maxPower": 6500
+        }
+      }
+    ],
+    "options": {}
   }
 ];

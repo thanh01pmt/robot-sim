@@ -1,17 +1,134 @@
 var blockly = new function() {
   var self = this;
 
-  self.theme = Blockly.Theme.defineTheme('customTheme', {
-    'base': Blockly.Themes.Classic,
-    'startHats': true
+  self.theme = Blockly.Theme.defineTheme('scratchZelosTheme', {
+    'base': Blockly.Themes.Zelos,
+    'startHats': true,
+    'fontStyle': {
+      'family': '"Plus Jakarta Sans", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif',
+      'weight': '700',
+      'size': 11
+    },
+    'blockStyles': {
+      'hat_blocks': {
+        'colourPrimary': '#FFBF00',
+        'colourSecondary': '#E6AC00',
+        'colourTertiary': '#CC9900',
+        'hat': 'cap'
+      },
+      'motion_blocks': {
+        'colourPrimary': '#4C97FF',
+        'colourSecondary': '#4280D7',
+        'colourTertiary': '#3373CC'
+      },
+      'motor_blocks': {
+        'colourPrimary': '#2F6BFF',
+        'colourSecondary': '#2558D9',
+        'colourTertiary': '#1D46B5'
+      },
+      'sensor_blocks': {
+        'colourPrimary': '#10B981',
+        'colourSecondary': '#059669',
+        'colourTertiary': '#047857'
+      },
+      'sound_blocks': {
+        'colourPrimary': '#CF63CF',
+        'colourSecondary': '#C94FC9',
+        'colourTertiary': '#BD42BD'
+      },
+      'pen_blocks': {
+        'colourPrimary': '#0FBD8C',
+        'colourSecondary': '#0DA57A',
+        'colourTertiary': '#0B8E69'
+      },
+      'experimental_blocks': {
+        'colourPrimary': '#EC4899',
+        'colourSecondary': '#DB2777',
+        'colourTertiary': '#BE185D'
+      },
+      'control_blocks': {
+        'colourPrimary': '#FFAB19',
+        'colourSecondary': '#EC9C13',
+        'colourTertiary': '#CF8B17'
+      },
+      'comment_blocks': {
+        'colourPrimary': '#64748B',
+        'colourSecondary': '#475569',
+        'colourTertiary': '#334155'
+      },
+      'logic_blocks': {
+        'colourPrimary': '#8B5CF6',
+        'colourSecondary': '#7C3AED',
+        'colourTertiary': '#6D28D9'
+      },
+      'loop_blocks': {
+        'colourPrimary': '#F97316',
+        'colourSecondary': '#EA580C',
+        'colourTertiary': '#C2410C'
+      },
+      'math_blocks': {
+        'colourPrimary': '#59C059',
+        'colourSecondary': '#46B946',
+        'colourTertiary': '#389438'
+      },
+      'text_blocks': {
+        'colourPrimary': '#14B8A6',
+        'colourSecondary': '#0D9488',
+        'colourTertiary': '#0F766E'
+      },
+      'list_blocks': {
+        'colourPrimary': '#0EA5E9',
+        'colourSecondary': '#0284C7',
+        'colourTertiary': '#0369A1'
+      },
+      'variable_blocks': {
+        'colourPrimary': '#FF8C1A',
+        'colourSecondary': '#FF8000',
+        'colourTertiary': '#DB6E00'
+      },
+      'variable_dynamic_blocks': {
+        'colourPrimary': '#FF8C1A',
+        'colourSecondary': '#FF8000',
+        'colourTertiary': '#DB6E00'
+      },
+      'procedure_blocks': {
+        'colourPrimary': '#FF6680',
+        'colourSecondary': '#FF4D6A',
+        'colourTertiary': '#FF3355'
+      }
+    },
+    'componentStyles': {
+      'workspaceBackgroundColour': '#F8FAFC',
+      'toolboxBackgroundColour': '#F8FAFC',
+      'toolboxForegroundColour': '#1E293B',
+      'flyoutBackgroundColour': '#F1F5F9',
+      'flyoutForegroundColour': '#334155',
+      'flyoutOpacity': 0.97,
+      'scrollbarColour': '#CBD5E1',
+      'scrollbarOpacity': 0.75
+    }
   });
 
   var options = {
     toolbox : null,
+    renderer : 'zelos',
+    grid: {
+      spacing: 24,
+      length: 2,
+      colour: '#CBD5E1',
+      snap: true
+    },
     zoom: {
-      controls: true
+      controls: true,
+      wheel: true,
+      startScale: 0.82,
+      maxScale: 2.5,
+      minScale: 0.4,
+      scaleSpeed: 1.15
     },
     move: {
+      scrollbars: true,
+      drag: true,
       wheel: true
     },
     collapse : true,
@@ -37,11 +154,20 @@ var blockly = new function() {
 
   // Run on page load
   this.init = function() {
-    Blockly.geras.Renderer.prototype.makeConstants_ = function() {
-      var constants = new Blockly.geras.ConstantProvider();
-      constants.ADD_START_HATS = true;
-      return constants;
-    };
+    if (Blockly.zelos && Blockly.zelos.Renderer) {
+      Blockly.zelos.Renderer.prototype.makeConstants_ = function() {
+        var constants = new Blockly.zelos.ConstantProvider();
+        constants.ADD_START_HATS = true;
+        return constants;
+      };
+    }
+    if (Blockly.geras && Blockly.geras.Renderer) {
+      Blockly.geras.Renderer.prototype.makeConstants_ = function() {
+        var constants = new Blockly.geras.ConstantProvider();
+        constants.ADD_START_HATS = true;
+        return constants;
+      };
+    }
 
     const script = document.createElement('script');
     script.src = 'blockly-9.0.0/msg/js/' + LANG + '.js';
@@ -55,7 +181,7 @@ var blockly = new function() {
 
   // Load toolbox
   this.loadToolBox = function() {
-    return fetch('toolbox.xml?v=b53ac963')
+    return fetch('toolbox.xml?v=20261022e')
       .then(response => response.text())
       .then(function(response) {
         response = i18n.replace(response);
@@ -302,10 +428,98 @@ var blockly = new function() {
 
   // Load custom blocks
   this.loadCustomBlocks = function() {
-    return fetch('customBlocks.json?v=3cd8436f')
+    var blockStyleMap = {
+      'when_started': 'hat_blocks',
+      'move_tank': 'motion_blocks',
+      'move_tank_for': 'motion_blocks',
+      'move_steering': 'motion_blocks',
+      'move_steering_for': 'motion_blocks',
+      'stop': 'motion_blocks',
+      'set_movement_motors': 'motion_blocks',
+      'tw_fwd': 'motion_blocks',
+      'tw_rev': 'motion_blocks',
+      'tw_left': 'motion_blocks',
+      'tw_right': 'motion_blocks',
+      'run_motor': 'motor_blocks',
+      'run_motor_for': 'motor_blocks',
+      'run_motor_to': 'motor_blocks',
+      'stop_motor': 'motor_blocks',
+      'speed': 'motor_blocks',
+      'position': 'motor_blocks',
+      'reset_motor': 'motor_blocks',
+      'color_sensor': 'sensor_blocks',
+      'color': 'sensor_blocks',
+      'tw_color': 'sensor_blocks',
+      'ultrasonic_sensor': 'sensor_blocks',
+      'laser_sensor': 'sensor_blocks',
+      'lidar_sensor': 'sensor_blocks',
+      'gyro_sensor': 'sensor_blocks',
+      'reset_gyro': 'sensor_blocks',
+      'gps_sensor': 'sensor_blocks',
+      'touch_state': 'sensor_blocks',
+      'wait_for_state': 'sensor_blocks',
+      'button_state': 'sensor_blocks',
+      'wait_until_button': 'sensor_blocks',
+      'camera_capture_image': 'sensor_blocks',
+      'camera_get_rgb': 'sensor_blocks',
+      'camera_get_hsv': 'sensor_blocks',
+      'camera_find_blobs': 'sensor_blocks',
+      'object_tracker': 'sensor_blocks',
+      'say': 'sound_blocks',
+      'beep': 'sound_blocks',
+      'play_tone': 'sound_blocks',
+      'penDown': 'pen_blocks',
+      'penUp': 'pen_blocks',
+      'penSetColor': 'pen_blocks',
+      'penSetWidth': 'pen_blocks',
+      'radio_send': 'experimental_blocks',
+      'radio_available': 'experimental_blocks',
+      'radio_read': 'experimental_blocks',
+      'radio_read_content': 'experimental_blocks',
+      'radio_empty': 'experimental_blocks',
+      'plotter_init': 'experimental_blocks',
+      'plotter_showHide': 'experimental_blocks',
+      'plotter_clear': 'experimental_blocks',
+      'plotter_drawGrid': 'experimental_blocks',
+      'plotter_setColor': 'experimental_blocks',
+      'plotter_setPointSize': 'experimental_blocks',
+      'plotter_drawPoint': 'experimental_blocks',
+      'plotter_drawLine': 'experimental_blocks',
+      'plotter_drawTriangle': 'experimental_blocks',
+      'sleep': 'control_blocks',
+      'wait_until': 'control_blocks',
+      'time': 'control_blocks',
+      'exit': 'control_blocks',
+      'comment': 'comment_blocks'
+    };
+
+    return fetch('customBlocks.json?v=20261022e')
       .then(response => response.text())
       .then(function(response) {
         let json = JSON.parse(i18n.replace(response));
+        for (let i = 0; i < json.length; i++) {
+          let blk = json[i];
+          blk.inputsInline = true;
+          if (blockStyleMap[blk.type]) {
+            blk.style = blockStyleMap[blk.type];
+            delete blk.colour;
+          } else if (blk.colour === 230) {
+            blk.style = 'motion_blocks';
+            delete blk.colour;
+          } else if (blk.colour === 160) {
+            blk.style = 'sensor_blocks';
+            delete blk.colour;
+          } else if (blk.colour === 65) {
+            blk.style = 'control_blocks';
+            delete blk.colour;
+          } else if (blk.colour === 20) {
+            blk.style = 'sound_blocks';
+            delete blk.colour;
+          } else if (blk.colour === 330) {
+            blk.style = 'experimental_blocks';
+            delete blk.colour;
+          }
+        }
         Blockly.defineBlocksWithJsonArray(json);
       });
   };

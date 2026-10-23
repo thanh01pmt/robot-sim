@@ -3,25 +3,96 @@ var babylon = new function() {
 
   this.DISABLE_ASYNC = true;
   this.ENABLE_ANTIALIASING = false;
-  // this.ENABLE_ANTIALIASING = true;
+
+  this.perfProfiles = {
+    low: {
+      tier: 'low',
+      label: 'Siêu nhẹ (Máy yếu)',
+      shadowsEnabled: false,
+      shadowMapSize: 256,
+      hardwareScaling: 1.15,
+      sensorReadIntervalMs: 45,
+      rttRefreshRate: 2,
+      freezeStaticMeshes: true
+    },
+    balanced: {
+      tier: 'balanced',
+      label: 'Cân bằng (Khuyên dùng)',
+      shadowsEnabled: false,
+      shadowMapSize: 512,
+      hardwareScaling: 1.0,
+      sensorReadIntervalMs: 25,
+      rttRefreshRate: 1,
+      freezeStaticMeshes: true
+    },
+    high: {
+      tier: 'high',
+      label: 'Chất lượng cao',
+      shadowsEnabled: true,
+      shadowMapSize: 512,
+      hardwareScaling: 1.0,
+      sensorReadIntervalMs: 16,
+      rttRefreshRate: 1,
+      freezeStaticMeshes: false
+    }
+  };
+
+  var savedTier = (typeof localStorage !== 'undefined' && localStorage.getItem('gearsPerfTier')) || 'low';
+  if (!this.perfProfiles[savedTier]) savedTier = 'low';
+  this.perfConfig = Object.assign({}, this.perfProfiles[savedTier]);
+
+  this.setPerformanceTier = function(tier, skipSceneReset) {
+    if (!self.perfProfiles[tier]) return;
+    self.perfConfig = Object.assign({}, self.perfProfiles[tier]);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('gearsPerfTier', tier);
+    }
+    if (self.engine) {
+      self.engine.setHardwareScalingLevel(self.perfConfig.hardwareScaling);
+    }
+    if (self.scene && !skipSceneReset) {
+      self.scene.shadowsEnabled = Boolean(self.perfConfig.shadowsEnabled);
+      self.scene.customRenderTargets.forEach(function(rtt) {
+        rtt.refreshRate = self.perfConfig.rttRefreshRate;
+      });
+    }
+  };
 
   this.world = worlds[0];
 
   // Run on page load
   this.init = function() {
     self.canvas = document.getElementById('renderCanvas');
-    self.engine = new BABYLON.Engine(self.canvas, self.ENABLE_ANTIALIASING);
+    self.engine = new BABYLON.Engine(self.canvas, self.ENABLE_ANTIALIASING, {
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: false,
+      stencil: false
+    });
+    self.engine.enableOfflineSupport = false;
+    self.engine.doNotHandleContextLost = false;
+    self.engine.setHardwareScalingLevel(self.perfConfig.hardwareScaling);
 
     self.scene = self.createScene(); // Call the createScene function
 
     self.world.setOptions().then(function(){
-      self.loadMeshes(self.scene);
+      return self.loadMeshes(self.scene);
+    }).then(function(){
+      if (typeof simPanel !== 'undefined' && typeof simPanel.onActive === 'function') {
+        simPanel.onActive();
+      } else {
+        self.engine.runRenderLoop(function () {
+          if (self.scene) self.scene.render();
+        });
+      }
+      setTimeout(function() {
+        if (self.engine) self.engine.resize();
+        if (typeof wroSuite !== 'undefined' && typeof wroSuite.spawnChallengeObjectsInScene === 'function') {
+          wroSuite.spawnChallengeObjectsInScene();
+        }
+      }, 50);
+    }).catch(function(err){
+      console.error('Error initializing 3D world meshes:', err);
     });
-
-    // Register a render loop to repeatedly render the scene
-    // self.engine.runRenderLoop(function () {
-    //   self.scene.render();
-    // });
 
     // Watch for browser/canvas resize events
     window.addEventListener('resize', function () {
@@ -36,9 +107,8 @@ var babylon = new function() {
       self.scene.dispose()
     }
     var scene = new BABYLON.Scene(self.engine);
+    scene.skipPointerMovePicking = true;
     var gravityVector = new BABYLON.Vector3(0,-98.1, 0);
-    // var physicsPlugin = new BABYLON.CannonJSPlugin();
-    // var physicsPlugin = new BABYLON.OimoJSPlugin();
     var physicsPlugin = new BABYLON.AmmoJSPlugin();
     scene.enablePhysics(gravityVector, physicsPlugin);
 
@@ -58,34 +128,35 @@ var babylon = new function() {
 
     // Add lights to the scene
     var lightHemi = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 0), scene);
-    lightHemi.groundColor = new BABYLON.Color3(0.1, 0.2, 0.1);
-    lightHemi.intensity = 0.5;
+    lightHemi.groundColor = new BABYLON.Color3(0.15, 0.22, 0.18);
+    lightHemi.intensity = 0.65;
 
     var lightDir = new BABYLON.DirectionalLight('DirectionalLight', new BABYLON.Vector3(-1, -1, -1), scene);
-    // lightDir.diffuse = new BABYLON.Color3(0.1, 1.2, 0.1);
     lightDir.position.y = 100;
     lightDir.position.x = 400;
     lightDir.position.z = 400;
-    lightDir.intensity = 0.8;
-    lightDir.autoCalcShadowZBounds = true;
+    lightDir.intensity = 0.75;
 
-    // Shadows
-    scene.shadowGenerator = new BABYLON.ShadowGenerator(512, lightDir);
-    scene.shadowGenerator.forceBackFacesOnly = true;
-    // scene.shadowGenerator.bias = 0.00005;
-    // scene.shadowGenerator.depthScale = 5000;
-    // scene._shadowsEnabled = false;
+    // Shadows (only allocate shadow map if enabled, otherwise use zero-cost stub)
+    if (self.perfConfig && self.perfConfig.shadowsEnabled) {
+      lightDir.autoCalcShadowZBounds = true;
+      scene.shadowGenerator = new BABYLON.ShadowGenerator(self.perfConfig.shadowMapSize || 512, lightDir);
+      scene.shadowGenerator.forceBackFacesOnly = true;
+      scene.shadowsEnabled = true;
+    } else {
+      scene.shadowGenerator = {
+        addShadowCaster: function() {},
+        removeShadowCaster: function() {},
+        dispose: function() {},
+        getShadowMap: function() { return { renderList: [] }; }
+      };
+      scene.shadowsEnabled = false;
+    }
 
-    // Optimizer
-    var options = new BABYLON.SceneOptimizerOptions(80, 2000); // 60fps, check every 2000ms
+    // Optimizer for low-end machines
+    var options = new BABYLON.SceneOptimizerOptions(50, 2000);
     options.addOptimization(new BABYLON.HardwareScalingOptimization(0, 2));
     self.optimizer = new BABYLON.SceneOptimizer(scene, options);
-    self.optimizer.onNewOptimizationAppliedObservable.add(function (optim) {
-      console.log(optim.getDescription());
-    });
-
-    // Debugging
-    // scene.debugLayer.show();
 
     return scene;
   };
@@ -202,15 +273,9 @@ var babylon = new function() {
 
     self.scene = self.createScene();
 
-    if (
-      typeof main == 'undefined'
-      || main.$navs.siblings('.active').attr('id') == 'navSim'
-      || main.$navs.siblings('.active').attr('id') == 'navArena'
-    ) {
-      self.engine.runRenderLoop(function () {
-        self.scene.render();
-      });
-    }
+    self.engine.runRenderLoop(function () {
+      if (self.scene) self.scene.render();
+    });
 
     return self.loadMeshes(self.scene).then(function(){
       // Restore camera
